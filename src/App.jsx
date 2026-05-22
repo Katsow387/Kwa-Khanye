@@ -1,12 +1,26 @@
-﻿import { Routes, Route } from 'react-router-dom';
+﻿import { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from './supabase';
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
 import Footer from './components/Footer.jsx';
 import Music from './pages/Music.jsx';
 import HomeVR from './pages/HomeVR.jsx';
 import Bioscope from './pages/Bioscope.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import SignUpPage from './pages/SignUpPage.jsx';
 
-function Home() {
+function Home({ session }) {
+  const navigate = useNavigate();
+
+  const handleProtectedClick = (path) => {
+    if (session) {
+      navigate(path);
+    } else {
+      navigate('/signup');
+    }
+  };
+
   return (
     <>
       <Hero />
@@ -17,7 +31,7 @@ function Home() {
         </div>
         <div className="pots-row">
           {/* MUSIC POT */}
-          <a href="/music" className="pot-card" id="music">
+          <div onClick={() => handleProtectedClick('/music')} className="pot-card" id="music" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
               <img src="/src/assets/images/pot_music.png" alt="Music pot" className="pot-img" />
               <div className="pot-icon-overlay">
@@ -35,10 +49,10 @@ function Home() {
               <li>Music videos</li>
             </ul>
             <span className="pot-enter">Enter →</span>
-          </a>
+          </div>
 
           {/* HOME VR POT */}
-          <a href="/homevr" className="pot-card featured" id="homevr">
+          <div onClick={() => handleProtectedClick('/homevr')} className="pot-card featured" id="homevr" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
               <img src="/src/assets/images/pot_homevr.png" alt="Home VR pot" className="pot-img" />
               <div className="pot-icon-overlay">
@@ -57,10 +71,10 @@ function Home() {
               <li>Online store</li>
             </ul>
             <span className="pot-enter">Enter →</span>
-          </a>
+          </div>
 
           {/* BIOSCOPE POT */}
-          <a href="/bioscope" className="pot-card" id="bioscope">
+          <div onClick={() => handleProtectedClick('/bioscope')} className="pot-card" id="bioscope" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
               <img src="/src/assets/images/pot_bioscope.png" alt="Bioscope pot" className="pot-img" />
               <div className="pot-icon-overlay">
@@ -78,7 +92,7 @@ function Home() {
               <li>Music videos</li>
             </ul>
             <span className="pot-enter">Enter →</span>
-          </a>
+          </div>
         </div>
       </section>
     </>
@@ -86,16 +100,43 @@ function Home() {
 }
 
 function App() {
+  const [session, setSession] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  const ProtectedRoute = ({ children }) => {
+    if (!session) {
+      navigate('/signup');
+      return null;
+    }
+    return children;
+  };
+
+  // Hide navbar and footer on login and signup pages
+  const hideNavFooter = location.pathname === '/login' || location.pathname === '/signup';
+
   return (
     <>
-      <Navbar />
+      {!hideNavFooter && <Navbar session={session} />}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/music" element={<Music />} />
-        <Route path="/homevr" element={<HomeVR />} />
-        <Route path="/bioscope" element={<Bioscope />} />
+        <Route path="/" element={<Home session={session} />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/music" element={<ProtectedRoute><Music /></ProtectedRoute>} />
+        <Route path="/homevr" element={<ProtectedRoute><HomeVR /></ProtectedRoute>} />
+        <Route path="/bioscope" element={<ProtectedRoute><Bioscope /></ProtectedRoute>} />
       </Routes>
-      <Footer />
+      {!hideNavFooter && <Footer />}
     </>
   );
 }

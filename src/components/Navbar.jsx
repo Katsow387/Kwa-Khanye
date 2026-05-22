@@ -37,7 +37,6 @@ function Navbar() {
           <li><Link to="/music">Music</Link></li>
           <li><Link to="/homevr">Home VR</Link></li>
           <li><Link to="/bioscope">Bioscope</Link></li>
-          <li><a href="#store">Store</a></li>
         </ul>
         <button className={`hamburger ${isOpen ? 'open' : ''}`} onClick={toggleMenu}>
           <span></span><span></span><span></span>
@@ -47,7 +46,6 @@ function Navbar() {
         <Link to="/music" onClick={closeMenu}>Music</Link>
         <Link to="/homevr" onClick={closeMenu}>Home VR</Link>
         <Link to="/bioscope" onClick={closeMenu}>Bioscope</Link>
-        <a href="#store" onClick={closeMenu}>Store</a>
       </div>
     </>
   );
