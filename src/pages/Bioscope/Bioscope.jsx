@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react';
-import { supabase } from '../supabase';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../supabase';
 
 function Bioscope() {
   const [films, setFilms] = useState([]);

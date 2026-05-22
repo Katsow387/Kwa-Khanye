@@ -4,11 +4,11 @@ import { supabase } from './supabase';
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
 import Footer from './components/Footer.jsx';
-import Music from './pages/Music.jsx';
-import HomeVR from './pages/HomeVR.jsx';
-import Bioscope from './pages/Bioscope.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import SignUpPage from './pages/SignUpPage.jsx';
+import Music from './pages/Music/Music.jsx';
+import HomeVR from './pages/HomeVR/HomeVR.jsx';
+import Bioscope from './pages/Bioscope/Bioscope.jsx';
+import LoginPage from './pages/Auth/LoginPage.jsx';
+import SignUpPage from './pages/Auth/SignUpPage.jsx';
 
 function Home({ session }) {
   const navigate = useNavigate();
@@ -122,7 +122,6 @@ function App() {
     return children;
   };
 
-  // Hide navbar and footer on login and signup pages
   const hideNavFooter = location.pathname === '/login' || location.pathname === '/signup';
 
   return (

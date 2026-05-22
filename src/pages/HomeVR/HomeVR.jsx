@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react';
-import { supabase } from '../supabase';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../supabase';
 
 function HomeVR() {
   const [artworks, setArtworks] = useState([]);
