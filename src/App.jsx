@@ -33,7 +33,7 @@ function Home({ session }) {
           {/* MUSIC POT */}
           <div onClick={() => handleProtectedClick('/music')} className="pot-card" id="music" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
-              <img src="/src/assets/images/pot_music.png" alt="Music pot" className="pot-img" />
+              <img src="/assets/images/pot_music.png" alt="Music pot" className="pot-img" />
               <div className="pot-icon-overlay">
                 <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
                   <circle cx="26" cy="26" r="24" fill="rgba(0,0,0,0.55)" stroke="#F4C274" strokeWidth="1.5"/>
@@ -54,7 +54,7 @@ function Home({ session }) {
           {/* HOME VR POT */}
           <div onClick={() => handleProtectedClick('/homevr')} className="pot-card featured" id="homevr" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
-              <img src="/src/assets/images/pot_homevr.png" alt="Home VR pot" className="pot-img" />
+              <img src="/assets/images/pot_homevr.png" alt="Home VR pot" className="pot-img" />
               <div className="pot-icon-overlay">
                 <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
                   <circle cx="26" cy="26" r="24" fill="rgba(0,0,0,0.55)" stroke="#F4C274" strokeWidth="1.5"/>
@@ -76,7 +76,7 @@ function Home({ session }) {
           {/* BIOSCOPE POT */}
           <div onClick={() => handleProtectedClick('/bioscope')} className="pot-card" id="bioscope" style={{ cursor: 'pointer' }}>
             <div className="pot-img-wrap">
-              <img src="/src/assets/images/pot_bioscope.png" alt="Bioscope pot" className="pot-img" />
+              <img src="/assets/images/pot_bioscope.png" alt="Bioscope pot" className="pot-img" />
               <div className="pot-icon-overlay">
                 <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
                   <circle cx="26" cy="26" r="24" fill="rgba(0,0,0,0.55)" stroke="#F4C274" strokeWidth="1.5"/>
