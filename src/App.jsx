@@ -9,6 +9,8 @@ import HomeVR from './pages/HomeVR/HomeVR.jsx';
 import Bioscope from './pages/Bioscope/Bioscope.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignUpPage from './pages/Auth/SignUpPage.jsx';
+// ADDED: Import forgot password components
+import ForgotPasswordPage, { ResetPasswordPage } from './pages/Auth/ForgotPasswordPage.jsx';
 
 function Home({ session }) {
   const navigate = useNavigate();
@@ -122,7 +124,11 @@ function App() {
     return children;
   };
 
-  const hideNavFooter = location.pathname === '/login' || location.pathname === '/signup';
+  // UPDATED: Added forgot password and reset password routes to hide nav/footer
+  const hideNavFooter = location.pathname === '/login' || 
+                        location.pathname === '/signup' || 
+                        location.pathname === '/forgot-password' || 
+                        location.pathname === '/reset-password';
 
   return (
     <>
@@ -131,6 +137,9 @@ function App() {
         <Route path="/" element={<Home session={session} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        {/* ADDED: Forgot password routes */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/music" element={<ProtectedRoute><Music /></ProtectedRoute>} />
         <Route path="/homevr" element={<ProtectedRoute><HomeVR /></ProtectedRoute>} />
         <Route path="/bioscope" element={<ProtectedRoute><Bioscope /></ProtectedRoute>} />
