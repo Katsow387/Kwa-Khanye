@@ -1,8 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../supabase';
 import './Music.css';
 
 const DEEZER_SEARCH_URL = '/api/deezer/search?q=';
+
 function Music() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,11 +20,22 @@ function Music() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState('off'); // 'off', 'one', 'all'
+  const [repeat, setRepeat] = useState('off');
   const [shuffledIndices, setShuffledIndices] = useState([]);
 
   const audioRef = useRef(null);
   const searchTimeout = useRef(null);
+
+  // ✅ AUTH CHECK – redirect to login if not authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   // Debounced search
   useEffect(() => {
@@ -62,7 +77,6 @@ function Music() {
     return () => clearTimeout(searchTimeout.current);
   }, [searchQuery]);
 
-  // Generate shuffled indices
   const generateShuffledIndices = useCallback((playlist) => {
     const indices = playlist.map((_, idx) => idx);
     for (let i = indices.length - 1; i > 0; i--) {
@@ -72,7 +86,6 @@ function Music() {
     return indices;
   }, []);
 
-  // Play a track by its index in the current playlist
   const playTrackAtIndex = (index) => {
     if (!currentPlaylist.length) return;
     setCurrentTrackIndex(index);
@@ -80,7 +93,6 @@ function Music() {
     setError('');
   };
 
-  // Select track from search results
   const selectTrack = (track) => {
     setCurrentPlaylist(searchResults);
     const idx = searchResults.findIndex(t => t.id === track.id);
@@ -97,7 +109,6 @@ function Music() {
     }
   };
 
-  // Audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -138,7 +149,6 @@ function Music() {
     };
   }, [repeat, shuffle, currentPlaylist, currentTrackIndex]);
 
-  // Load track into audio element when currentTrackIndex changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || currentTrackIndex < 0 || !currentPlaylist.length) return;

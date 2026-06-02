@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
 const TABS = ['All', 'Albums', 'Music Videos', 'Biographies'];
@@ -33,7 +34,6 @@ const TYPE_ICONS = {
   ),
 };
 
-// Placeholder cards when no data
 const PLACEHOLDER = [
   { id: 'p1', title: 'Roots & Rhythm', type: 'album', artist: 'Khanye Collective', year: '2024', description: 'A soulful journey through the sounds of the motherland.', thumbnail: null },
   { id: 'p2', title: 'Fire Dance', type: 'music_video', artist: 'Amara Soul', year: '2024', description: 'Visual poetry set against the backdrop of the Highveld sunset.', thumbnail: null },
@@ -117,11 +117,23 @@ function Modal({ item, onClose }) {
 }
 
 function Bioscope() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+
+  // ✅ AUTH CHECK – redirect to login if not authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchFilms = async () => {
@@ -157,7 +169,6 @@ function Bioscope() {
           padding-bottom: 4rem;
         }
 
-        /* ---- HERO ---- */
         .bsc-hero {
           position: relative;
           padding: 4rem 2rem 3rem;
@@ -213,7 +224,6 @@ function Bioscope() {
           line-height: 1.7;
         }
 
-        /* ---- SEARCH ---- */
         .bsc-search-wrap {
           max-width: 480px;
           margin: 2rem auto 0;
@@ -245,7 +255,6 @@ function Bioscope() {
           box-shadow: 0 0 0 3px rgba(198,122,52,0.1);
         }
 
-        /* ---- TABS ---- */
         .bsc-tabs {
           display: flex;
           justify-content: center;
@@ -276,7 +285,6 @@ function Bioscope() {
           font-weight: 500;
         }
 
-        /* ---- STATS ---- */
         .bsc-stats {
           display: flex;
           justify-content: center;
@@ -302,7 +310,6 @@ function Bioscope() {
           margin-top: 0.25rem;
         }
 
-        /* ---- GRID ---- */
         .bsc-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -312,7 +319,6 @@ function Bioscope() {
           padding: 0 1.5rem;
         }
 
-        /* ---- CARD ---- */
         .bsc-card {
           background: rgba(20,10,6,0.8);
           border: 1px solid rgba(198,122,52,0.2);
@@ -414,7 +420,6 @@ function Bioscope() {
           border-color: #c67a34;
         }
 
-        /* ---- EMPTY STATE ---- */
         .bsc-empty {
           text-align: center;
           padding: 5rem 2rem;
@@ -423,7 +428,6 @@ function Bioscope() {
         .bsc-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
         .bsc-empty p { font-size: 0.9rem; }
 
-        /* ---- LOADING ---- */
         .bsc-loading {
           display: flex;
           justify-content: center;
@@ -445,7 +449,6 @@ function Bioscope() {
           40% { transform: scale(1); opacity: 1; }
         }
 
-        /* ---- MODAL ---- */
         .bsc-modal-overlay {
           position: fixed;
           inset: 0;
@@ -542,7 +545,6 @@ function Bioscope() {
         }
         .bsc-modal-action:hover { opacity: 0.85; }
 
-        /* ---- DIVIDER ---- */
         .bsc-section-label {
           max-width: 1200px;
           margin: 2.5rem auto 0;
@@ -564,7 +566,6 @@ function Bioscope() {
       `}</style>
 
       <div className="bsc-root">
-        {/* Hero */}
         <div className="bsc-hero">
           <div className="bsc-hero-eyebrow">
             🎬 Kwa Khanye
@@ -572,7 +573,6 @@ function Bioscope() {
           <h1>The Bioscope</h1>
           <p>Albums, music videos & biographies — a living archive of African culture</p>
 
-          {/* Search */}
           <div className="bsc-search-wrap">
             <span className="bsc-search-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -589,7 +589,6 @@ function Bioscope() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="bsc-stats">
           <div className="bsc-stat">
             <div className="bsc-stat-num">{items.filter(i => i.type === 'album').length}</div>
@@ -605,7 +604,6 @@ function Bioscope() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="bsc-tabs">
           {TABS.map(tab => (
             <button
@@ -618,12 +616,10 @@ function Bioscope() {
           ))}
         </div>
 
-        {/* Section label */}
         <div className="bsc-section-label">
           {filtered.length} {activeTab === 'All' ? 'items' : activeTab.toLowerCase()}
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="bsc-loading">
             <div className="bsc-dot"/><div className="bsc-dot"/><div className="bsc-dot"/>
@@ -641,7 +637,6 @@ function Bioscope() {
           </div>
         )}
 
-        {/* Modal */}
         <Modal item={selected} onClose={() => setSelected(null)} />
       </div>
     </>

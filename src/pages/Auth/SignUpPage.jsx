@@ -18,7 +18,6 @@ export default function SignUpPage() {
     setLoading(true);
     setError('');
 
-    // --- Basic validation ---
     const trimmedUsername = username.trim().toLowerCase();
 
     if (!trimmedUsername) {
@@ -42,7 +41,6 @@ export default function SignUpPage() {
       return;
     }
 
-    // --- Check if username is already taken ---
     const { data: existingUser, error: checkError } = await supabase
       .from('profiles')
       .select('username')
@@ -61,15 +59,12 @@ export default function SignUpPage() {
       return;
     }
 
-    // --- Sign up the user ---
-    // The database trigger (handle_new_user) will automatically
-    // insert a row into public.profiles when auth.users gets the new user.
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          username: trimmedUsername, // stored in raw_user_meta_data, picked up by trigger
+          username: trimmedUsername,
         },
       },
     });
@@ -80,8 +75,6 @@ export default function SignUpPage() {
       return;
     }
 
-    // Supabase returns a user even if email confirmation is pending
-    // data.user will exist but data.session will be null until confirmed
     if (data?.user) {
       setSuccess(true);
     }
@@ -94,7 +87,7 @@ export default function SignUpPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin, // redirect back to home after Google OAuth
+        redirectTo: window.location.origin,
       },
     });
     if (error) setError(error.message);
@@ -105,8 +98,6 @@ export default function SignUpPage() {
       <div className="auth-container">
         <div className="auth-bg-blur">Kwa Khanye</div>
         <div className="auth-card" style={{ textAlign: 'center' }}>
-
-          {/* Logo */}
           <div className="auth-brand" style={{ justifyContent: 'center', marginBottom: '1.5rem' }}>
             <svg width="48" height="48" viewBox="0 0 100 100">
               <polygon points="50,5 10,55 90,55" fill="#8B6914"/>
@@ -117,8 +108,6 @@ export default function SignUpPage() {
               <circle cx="50" cy="5" r="5" fill="#5C4208"/>
             </svg>
           </div>
-
-          {/* Success badge */}
           <div style={{
             display: 'inline-block',
             background: 'rgba(198, 122, 52, 0.15)',
@@ -133,16 +122,13 @@ export default function SignUpPage() {
           }}>
             ✓ Account Created
           </div>
-
           <h2 className="auth-title" style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>
             Sawubona, {username.trim()} 👋
           </h2>
-
           <p className="auth-subtitle" style={{ lineHeight: '1.6', marginBottom: '2rem' }}>
             You're now part of the Kraal.<br />
             A place where culture lives — music, art, stories & more await you.
           </p>
-
           <button
             className="submit-btn"
             onClick={() => navigate('/login')}
@@ -150,7 +136,6 @@ export default function SignUpPage() {
           >
             Sign In to Your Account
           </button>
-
           <p style={{ color: 'rgba(244,208,144,0.35)', fontSize: '0.78rem', marginTop: '1.25rem' }}>
             Kwa Khanye &mdash; Home of Culture
           </p>
@@ -190,7 +175,6 @@ export default function SignUpPage() {
         <div className="divider">or with email</div>
 
         <form onSubmit={handleSubmit}>
-          {/* USERNAME */}
           <div className="form-group">
             <div className="label-row">
               <label className="form-label">Username</label>
@@ -207,7 +191,6 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          {/* EMAIL */}
           <div className="form-group">
             <div className="label-row">
               <label className="form-label">Email Address</label>
@@ -224,7 +207,6 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          {/* PASSWORD */}
           <div className="form-group">
             <div className="label-row">
               <label className="form-label">Password</label>
