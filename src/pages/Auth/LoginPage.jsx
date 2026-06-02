@@ -116,7 +116,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <a href="#forgot" className="forgot-password-link">Forgot password?</a>
+        <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
 
         <p className="auth-footer-text">
           New to the Kraal? <Link to="/signup" className="auth-redirect-link">Create an account</Link>

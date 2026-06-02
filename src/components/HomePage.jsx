@@ -84,7 +84,7 @@ export default function HomePage() {
             <li><Link to="/music"   onClick={() => setMenuOpen(false)}>Music</Link></li>
             <li><Link to="/homevr"  onClick={() => setMenuOpen(false)}>Home VR</Link></li>
             <li><Link to="/bioscope" onClick={() => setMenuOpen(false)}>Bioscope</Link></li>
-            <li><Link to="/store"   onClick={() => setMenuOpen(false)}>Store</Link></li>
+           
           </ul>
 
           <Link to="/login" className="kk-nav-btn">Enter the Kraal</Link>
