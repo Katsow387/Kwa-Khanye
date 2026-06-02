@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
 const TABS = ['All', 'Art Collection', 'NFTs', 'Museum', 'Online Store'];
@@ -60,7 +61,6 @@ const SECTION_ICONS = {
   ),
 };
 
-// ── Featured banner (first item per section) ─────────────────────────
 function FeaturedBanner({ item }) {
   if (!item) return null;
   const meta = TYPE_META[item.type];
@@ -89,7 +89,6 @@ function FeaturedBanner({ item }) {
   );
 }
 
-// ── Card ─────────────────────────────────────────────────────────────
 function VRCard({ item, onClick }) {
   const meta = TYPE_META[item.type];
   return (
@@ -128,7 +127,6 @@ function VRCard({ item, onClick }) {
   );
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────
 function Modal({ item, onClose }) {
   if (!item) return null;
   const meta = TYPE_META[item.type];
@@ -164,7 +162,6 @@ function Modal({ item, onClose }) {
   );
 }
 
-// ── Section strip (horizontal scroll) ────────────────────────────────
 function SectionStrip({ title, icon, items, onSelect }) {
   if (items.length === 0) return null;
   return (
@@ -181,13 +178,24 @@ function SectionStrip({ title, icon, items, onSelect }) {
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────
 function HomeVR() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+
+  // ✅ AUTH CHECK – redirect to login if not authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchArt = async () => {
@@ -226,7 +234,6 @@ function HomeVR() {
           padding-bottom: 5rem;
         }
 
-        /* ── HERO ── */
         .vr-hero {
           position: relative;
           padding: 4rem 2rem 2.5rem;
@@ -282,7 +289,6 @@ function HomeVR() {
           line-height: 1.7;
         }
 
-        /* ── SECTION PILLS ── */
         .vr-section-pills {
           display: flex;
           justify-content: center;
@@ -310,7 +316,6 @@ function HomeVR() {
         }
         .vr-section-pill.active { border-color: #c67a34; }
 
-        /* ── SEARCH ── */
         .vr-search-wrap {
           max-width: 440px;
           margin: 0 auto 0;
@@ -342,7 +347,6 @@ function HomeVR() {
           box-shadow: 0 0 0 3px rgba(198,122,52,0.08);
         }
 
-        /* ── STATS ── */
         .vr-stats {
           display: flex;
           justify-content: center;
@@ -366,7 +370,6 @@ function HomeVR() {
           margin-top: 0.3rem;
         }
 
-        /* ── FEATURED ── */
         .vr-featured {
           margin: 2.5rem 1.5rem 0;
           border-radius: 20px;
@@ -439,7 +442,6 @@ function HomeVR() {
         .vr-featured-art img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
         .vr-featured-symbol { font-size: 5rem; }
 
-        /* ── STRIP (section row) ── */
         .vr-strip { margin-top: 3rem; }
         .vr-strip-header {
           display: flex;
@@ -480,7 +482,6 @@ function HomeVR() {
         }
         .vr-strip-scroll::-webkit-scrollbar { display: none; }
 
-        /* ── GRID (filtered view) ── */
         .vr-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
@@ -490,7 +491,6 @@ function HomeVR() {
           padding: 0 1.5rem;
         }
 
-        /* ── CARD ── */
         .vr-card {
           background: rgba(16,8,4,0.85);
           border: 1px solid rgba(198,122,52,0.18);
@@ -612,7 +612,6 @@ function HomeVR() {
           border-color: #c67a34;
         }
 
-        /* ── EMPTY / LOADING ── */
         .vr-empty {
           text-align: center;
           padding: 5rem 2rem;
@@ -639,7 +638,6 @@ function HomeVR() {
           40% { transform: scale(1); opacity: 1; }
         }
 
-        /* ── MODAL ── */
         .vr-overlay {
           position: fixed;
           inset: 0;
@@ -754,7 +752,6 @@ function HomeVR() {
         }
         .vr-modal-action:hover { opacity: 0.85; }
 
-        /* ── SECTION DIVIDER ── */
         .vr-divider {
           display: flex;
           align-items: center;
@@ -776,13 +773,11 @@ function HomeVR() {
       `}</style>
 
       <div className="vr-root">
-        {/* Hero */}
         <div className="vr-hero">
           <div className="vr-eyebrow">🏛 Kwa Khanye</div>
           <h1>The Virtual Kraal</h1>
           <p>Art collections, NFTs, museum exhibitions & the online store — all in one place</p>
 
-          {/* Section pills */}
           <div className="vr-section-pills">
             {TABS.map(tab => (
               <button
@@ -799,7 +794,6 @@ function HomeVR() {
             ))}
           </div>
 
-          {/* Search */}
           <div className="vr-search-wrap">
             <span className="vr-search-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -815,7 +809,6 @@ function HomeVR() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="vr-stats">
           {[
             { key: 'art', label: 'Artworks' },
@@ -835,10 +828,8 @@ function HomeVR() {
             <div className="vr-dot"/><div className="vr-dot"/><div className="vr-dot"/>
           </div>
         ) : showSections ? (
-          /* ── SECTION VIEW (All tab, no search) ── */
           <>
             <FeaturedBanner item={items[0]} />
-
             {[
               { type: 'art', title: 'Art Collection' },
               { type: 'nft', title: 'NFTs' },
@@ -862,7 +853,6 @@ function HomeVR() {
             <p>Nothing found. Try a different search or section.</p>
           </div>
         ) : (
-          /* ── FILTERED GRID VIEW ── */
           <div className="vr-grid">
             {filtered.map(item => <VRCard key={item.id} item={item} onClick={setSelected} />)}
           </div>

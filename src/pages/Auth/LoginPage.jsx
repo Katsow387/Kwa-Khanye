@@ -40,7 +40,6 @@ export default function LoginPage() {
     <div className="auth-container">
       <div className="auth-bg-blur">Kwa Khanye</div>
       <div className="auth-card">
-        {/* ====== SVG LOGO (same as Navbar) ====== */}
         <div className="auth-brand">
           <svg width="36" height="36" viewBox="0 0 100 100">
             <polygon points="50,5 10,55 90,55" fill="#8B6914"/>
@@ -117,7 +116,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* FIXED: Changed from <a> to <Link> */}
+        {/* Fixed: Changed from <a> to <Link> for proper routing */}
         <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
 
         <p className="auth-footer-text">

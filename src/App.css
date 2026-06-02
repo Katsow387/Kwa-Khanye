@@ -1,184 +1,833 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+﻿/* HomePage.css — Kwa Khanye cinematic African theme */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* ============================================================
+   BASE
+   ============================================================ */
+.kk-page {
+  min-height: 100vh;
+  background: #0a0603;
+  color: #f4e8d0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
 }
 
-.hero {
+/* ============================================================
+   HERO
+   ============================================================ */
+.kk-hero {
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#center {
+  height: 100vh;
+  min-height: 600px;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-#next-steps {
+.kk-hero-bg {
+  position: absolute;
+  inset: 0;
+  /* Option 1 — rondavel huts in African grassland */
+  background-image: url('https://images.unsplash.com/photo-1504432842672-1a79f78e4084?w=1600&auto=format&fit=crop&q=80');
+  /* Option 2 — try if Option 1 doesn't show a rondavel:
+  background-image: url('https://images.unsplash.com/photo-1589825743127-4b8e994e35b9?w=1600&auto=format&fit=crop&q=80'); */
+  /* Option 3:
+  background-image: url('https://images.unsplash.com/photo-1574068468966-7f5e4b04a4ed?w=1600&auto=format&fit=crop&q=80'); */
+  background-size: cover;
+  background-position: center 40%;
+  filter: saturate(1.2) brightness(0.55);
+  transform: scale(1.05);
+  animation: kk-slowZoom 20s ease-in-out infinite alternate;
+}
+
+@keyframes kk-slowZoom {
+  from { transform: scale(1.05); }
+  to   { transform: scale(1.12); }
+}
+
+.kk-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(10, 6, 3, 0.2) 0%,
+      rgba(15, 8, 3, 0.1) 30%,
+      rgba(10, 6, 3, 0.55) 70%,
+      rgba(8, 4, 2, 0.92) 100%
+    ),
+    radial-gradient(ellipse at 50% 30%, rgba(180, 80, 20, 0.15) 0%, transparent 60%);
+}
+
+.kk-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 15% 25%, rgba(232, 168, 76, 0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 18%, rgba(232, 168, 76, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 41% 55%, rgba(232, 168, 76, 0.25) 0%, transparent 100%),
+    radial-gradient(2px 2px at 83% 70%, rgba(198, 122, 52, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 27% 80%, rgba(232, 168, 76, 0.2) 0%, transparent 100%);
+  animation: kk-dustFloat 8s ease-in-out infinite alternate;
+}
+
+@keyframes kk-dustFloat {
+  from { transform: translateY(0);     opacity: 0.6; }
+  to   { transform: translateY(-12px); opacity: 1;   }
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.kk-navbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2.5rem;
+  z-index: 50;
+  background: linear-gradient(to bottom, rgba(8, 4, 2, 0.7) 0%, transparent 100%);
+  gap: 1.5rem;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.kk-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
 }
 
-#next-steps ul {
+.kk-nav-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e8a84c;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kk-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
   list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.kk-nav-links a {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 232, 208, 0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 500;
 }
 
-.ticks {
-  position: relative;
+.kk-nav-links a:hover { color: #e8a84c; }
+
+.kk-nav-btn {
+  background: rgba(200, 120, 40, 0.2);
+  border: 1px solid rgba(200, 120, 40, 0.5);
+  color: #e8a84c;
+  padding: 0.5rem 1.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.25s;
+}
+
+.kk-nav-btn:hover {
+  background: rgba(200, 120, 40, 0.45);
+  border-color: #e8a84c;
+  color: #e8a84c;
+}
+
+/* Hamburger */
+.kk-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 60;
+}
+
+.kk-hamburger span {
+  display: block;
   width: 100%;
+  height: 1.5px;
+  background: #e8a84c;
+  border-radius: 2px;
+  transition: all 0.3s;
+  transform-origin: center;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
+.kk-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.kk-hamburger.open span:nth-child(2) { opacity: 0; }
+.kk-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* ============================================================
+   HERO CONTENT
+   ============================================================ */
+.kk-hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 0 1.5rem;
+  animation: kk-fadeUp 1.2s ease both;
+}
+
+@keyframes kk-fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kk-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(180, 80, 20, 0.18);
+  border: 1px solid rgba(232, 168, 76, 0.3);
+  border-radius: 100px;
+  padding: 0.3rem 1.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #c87a3e;
+  margin-bottom: 1.8rem;
+  backdrop-filter: blur(8px);
+}
+
+.kk-eyebrow-dot {
+  width: 5px;
+  height: 5px;
+  background: #c87a3e;
+  border-radius: 50%;
+  animation: kk-pulse 2s infinite;
+}
+
+@keyframes kk-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.kk-hero-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(3.5rem, 10vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: 0.04em;
+  color: #f4e8d0;
+  text-shadow: 0 4px 60px rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.4rem;
+}
+
+.kk-title-accent {
+  color: #e8a84c;
+  display: block;
+  font-style: italic;
+  font-size: 0.65em;
+  letter-spacing: 0.18em;
+  font-weight: 400;
+  margin-top: 0.3rem;
+}
+
+.kk-hero-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  color: rgba(244, 232, 208, 0.65);
+  margin: 1.5rem auto 0;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.kk-hero-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem auto;
+  max-width: 280px;
+}
+
+.kk-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 168, 76, 0.4), transparent);
+}
+
+.kk-divider-diamond {
+  width: 6px;
+  height: 6px;
+  background: #c87a3e;
+  transform: rotate(45deg);
+}
+
+.kk-cta-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kk-btn-primary {
+  background: linear-gradient(160deg, #c87a3e 0%, #8b4a18 100%);
+  color: #fff8f0;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 32px rgba(200, 100, 30, 0.35);
+  display: inline-block;
+}
+
+.kk-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(200, 100, 30, 0.55);
+  color: #fff8f0;
+}
+
+.kk-btn-ghost {
+  background: transparent;
+  color: rgba(244, 232, 208, 0.8);
+  border: 1px solid rgba(244, 232, 208, 0.3);
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.kk-btn-ghost:hover {
+  border-color: rgba(232, 168, 76, 0.6);
+  color: #e8a84c;
+}
+
+/* Scroll hint */
+.kk-scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  animation: kk-bounce 2.5s ease-in-out infinite;
+}
+
+.kk-scroll-hint span {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(232, 168, 76, 0.4);
+}
+
+.kk-scroll-arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 1px solid rgba(232, 168, 76, 0.5);
+  border-bottom: 1px solid rgba(232, 168, 76, 0.5);
+  transform: rotate(45deg);
+  margin-top: -8px;
+}
+
+@keyframes kk-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ============================================================
+   GEOMETRIC BORDER
+   ============================================================ */
+.kk-geo-border {
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    #c87a3e 0px,  #c87a3e 20px,
+    #8b4a18 20px, #8b4a18 40px,
+    #5c2e08 40px, #5c2e08 60px,
+    #8b4a18 60px, #8b4a18 80px
+  );
+  opacity: 0.6;
+}
+
+/* ============================================================
+   CATEGORIES
+   ============================================================ */
+.kk-categories {
+  background: linear-gradient(180deg, #080402 0%, #0f0804 40%, #080402 100%);
+  padding: 5rem 2rem 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.kk-categories::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(232, 168, 76, 0.25) 50%, transparent 100%);
+}
+
+.kk-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(5rem, 18vw, 14rem);
+  font-weight: 900;
+  color: rgba(232, 168, 76, 0.025);
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.kk-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.kk-label-line {
+  height: 1px;
+  width: 60px;
+  background: rgba(232, 168, 76, 0.3);
+}
+
+.kk-section-label span {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #c87a3e;
+  font-weight: 500;
+}
+
+.kk-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  text-align: center;
+  color: #f4e8d0;
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.kk-section-sub {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: rgba(244, 232, 208, 0.4);
+  margin-bottom: 4rem;
+}
+
+/* ============================================================
+   POT CARDS
+   ============================================================ */
+.kk-pots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.kk-pot-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 4 / 5;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.kk-pot-card:hover { transform: translateY(-8px); }
+
+.kk-pot-card-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.1) brightness(0.7);
+  transition: transform 0.6s ease, filter 0.4s ease;
+}
+
+.kk-pot-card:hover .kk-pot-card-img {
+  transform: scale(1.06);
+  filter: saturate(1.2) brightness(0.75);
+}
+
+.kk-pot-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 6, 3, 0.05) 0%,
+    rgba(10, 6, 3, 0.3) 40%,
+    rgba(8, 4, 2, 0.88) 100%
+  );
+}
+
+.kk-pot-card-content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 1.8rem 1.5rem;
+}
+
+.kk-pot-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(200, 120, 40, 0.25);
+  border: 1px solid rgba(232, 168, 76, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s;
+}
+
+.kk-pot-card:hover .kk-pot-card-icon {
+  background: rgba(200, 120, 40, 0.45);
+  border-color: #e8a84c;
+  transform: scale(1.1);
+}
+
+.kk-pot-card-category {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #c87a3e;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.kk-pot-card-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f4e8d0;
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.04em;
+}
+
+.kk-pot-card-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.35s ease;
+}
+
+.kk-pot-card:hover .kk-pot-card-items {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.kk-pot-card-items li {
+  font-size: 0.78rem;
+  color: rgba(244, 232, 208, 0.65);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kk-pot-card-items li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: #c87a3e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kk-pot-card-arrow {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(200, 120, 40, 0.2);
+  border: 1px solid rgba(232, 168, 76, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.3s;
+  backdrop-filter: blur(8px);
+}
+
+.kk-pot-card:hover .kk-pot-card-arrow {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   TEXTURE BAND
+   ============================================================ */
+.kk-texture-band {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: #080402;
+}
+
+.kk-texture-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  filter: saturate(0.6);
+}
+
+.kk-texture-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8,4,2,0.8) 0%, transparent 20%, transparent 80%, rgba(8,4,2,0.8) 100%),
+    linear-gradient(180deg, rgba(8,4,2,0.5) 0%, transparent 30%, transparent 70%, rgba(8,4,2,0.5) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kk-pattern-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.kk-pattern-symbol {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  color: rgba(232, 168, 76, 0.5);
+}
+
+.kk-pattern-line {
+  width: 1px;
+  height: 50px;
+  background: rgba(232, 168, 76, 0.25);
+}
+
+/* ============================================================
+   QUOTE
+   ============================================================ */
+.kk-quote {
+  padding: 5rem 2rem;
+  background: #0a0603;
+  text-align: center;
+  position: relative;
+}
+
+.kk-quote-mark {
+  font-family: 'Cinzel', serif;
+  font-size: 8rem;
+  line-height: 0.5;
+  color: rgba(200, 120, 40, 0.15);
+  display: block;
+  margin-bottom: -1rem;
+}
+
+.kk-quote-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(244, 232, 208, 0.8);
+  max-width: 700px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.5;
+}
+
+.kk-quote-attr {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(200, 120, 40, 0.6);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.kk-footer {
+  background: #050301;
+  border-top: 1px solid rgba(232, 168, 76, 0.12);
+  padding: 3rem 2.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.kk-footer-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: #c87a3e;
+  letter-spacing: 0.12em;
+}
+
+.kk-footer-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: rgba(244, 232, 208, 0.3);
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
+.kk-footer-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.kk-footer-links a {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(244, 232, 208, 0.35);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.kk-footer-links a:hover { color: #c87a3e; }
+
+.kk-footer-copy {
+  font-size: 0.72rem;
+  color: rgba(244, 232, 208, 0.2);
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .kk-nav-links {
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 4, 2, 0.97);
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    z-index: 55;
+    backdrop-filter: blur(20px);
   }
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
+  .kk-nav-links.open { display: flex; }
+
+  .kk-nav-links a {
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
   }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
+
+  .kk-hamburger { display: flex; }
+
+  .kk-nav-btn { display: none; }
+
+  .kk-navbar { padding: 1.2rem 1.5rem; }
+
+  .kk-pots-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
   }
+
+  .kk-pot-card { aspect-ratio: 3 / 2; }
+
+  .kk-pot-card-items {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .kk-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 2rem 1.5rem;
+  }
+
+  .kk-footer-links { gap: 1rem; }
+
+  .kk-pattern-row { gap: 0.8rem; }
+  .kk-pattern-symbol { font-size: 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .kk-eyebrow { font-size: 0.62rem; letter-spacing: 0.1em; }
+  .kk-cta-group { flex-direction: column; width: 100%; }
+  .kk-btn-primary, .kk-btn-ghost { width: 100%; text-align: center; }
+}
+
+/* ============================================================
+   RONDAVEL SCENE SVG
+   ============================================================ */
+.kk-rondavel-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  max-height: 55%;
+  z-index: 5;
+  pointer-events: none;
+}
+/* ============================================================
+   LOGO WATERMARK (fixed background image)
+   ============================================================ */
+.kk-watermark-logo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
 }

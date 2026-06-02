@@ -2,14 +2,14 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabase';
 import Navbar from './components/Navbar.jsx';
-import Hero from './components/Hero.jsx';
 import Footer from './components/Footer.jsx';
+import Hero from './components/Hero.jsx';
+import HomePage from './components/HomePage.jsx';
 import Music from './pages/Music/Music.jsx';
 import HomeVR from './pages/HomeVR/HomeVR.jsx';
 import Bioscope from './pages/Bioscope/Bioscope.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignUpPage from './pages/Auth/SignUpPage.jsx';
-// ADDED: Import forgot password components
 import ForgotPasswordPage, { ResetPasswordPage } from './pages/Auth/ForgotPasswordPage.jsx';
 
 function Home({ session }) {
@@ -124,7 +124,6 @@ function App() {
     return children;
   };
 
-  // UPDATED: Added forgot password and reset password routes to hide nav/footer
   const hideNavFooter = location.pathname === '/login' || 
                         location.pathname === '/signup' || 
                         location.pathname === '/forgot-password' || 
@@ -137,7 +136,6 @@ function App() {
         <Route path="/" element={<Home session={session} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        {/* ADDED: Forgot password routes */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/music" element={<ProtectedRoute><Music /></ProtectedRoute>} />
