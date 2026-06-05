@@ -3,20 +3,7 @@ import { Link } from 'react-router-dom';
 import '../App.css';
 import logoWatermark from '../assets/images/kwa_khanye_logo.png';
 import backgroundImage from '../assets/images/Background.png';
-
-const RondavelLogo = ({ size = 38 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100">
-    <polygon points="50,8 8,48 92,48" fill="#8B6914" />
-    <rect x="7" y="46" width="86" height="5" rx="2" fill="#5C4208" />
-    <ellipse cx="50" cy="70" rx="34" ry="24" fill="#D4895A" />
-    <polyline
-      points="16,48 22,40 28,48 34,40 40,48 46,40 52,48 58,40 64,48 70,40 76,48 82,40 88,48"
-      fill="none" stroke="#8B3A0F" strokeWidth="2.5"
-    />
-    <rect x="42" y="60" width="16" height="22" rx="8" fill="#6B2D0A" />
-    <circle cx="50" cy="8" r="5" fill="#e8a84c" />
-  </svg>
-);
+import whatsappLogo from '/assets/images/WhatsApp Image 2026-06-02 at 14.41.43.jpeg';
 
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a84c" strokeWidth="2">
@@ -72,11 +59,19 @@ export default function HomePage() {
         <div className="kk-hero-overlay" />
         <div className="kk-dust" />
 
-        {/* Artificial rondavels and trees have been removed */}
-
         <nav className="kk-navbar">
           <div className="kk-nav-logo">
-            <RondavelLogo size={38} />
+            {/* Replaced SVG with WhatsApp image */}
+            <img 
+              src={whatsappLogo} 
+              alt="Kwa Khanye Logo" 
+              style={{ 
+                width: '38px', 
+                height: '38px', 
+                objectFit: 'cover',
+                borderRadius: '50%'
+              }} 
+            />
             <span className="kk-nav-brand">Kwa Khanye</span>
           </div>
 
@@ -84,7 +79,6 @@ export default function HomePage() {
             <li><Link to="/music"   onClick={() => setMenuOpen(false)}>Music</Link></li>
             <li><Link to="/homevr"  onClick={() => setMenuOpen(false)}>Home VR</Link></li>
             <li><Link to="/bioscope" onClick={() => setMenuOpen(false)}>Bioscope</Link></li>
-           
           </ul>
 
           <Link to="/login" className="kk-nav-btn">Enter the Kraal</Link>
