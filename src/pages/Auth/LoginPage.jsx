@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import './AuthPages.css';
 
+// Import your WhatsApp logo
+const whatsappLogo = '/assets/images/WhatsApp Image 2026-06-02 at 14.41.43.jpeg';
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -41,14 +44,16 @@ export default function LoginPage() {
       <div className="auth-bg-blur">Kwa Khanye</div>
       <div className="auth-card">
         <div className="auth-brand">
-          <svg width="36" height="36" viewBox="0 0 100 100">
-            <polygon points="50,5 10,55 90,55" fill="#8B6914"/>
-            <rect x="8" y="53" width="84" height="6" rx="2" fill="#5C4208"/>
-            <ellipse cx="50" cy="72" rx="32" ry="22" fill="#D4895A"/>
-            <polyline points="18,55 24,47 30,55 36,47 42,55 48,47 54,55 60,47 66,55 72,47 78,55 84,47" fill="none" stroke="#8B3A0F" strokeWidth="2"/>
-            <rect x="42" y="68" width="16" height="20" rx="8" fill="#6B2D0A"/>
-            <circle cx="50" cy="5" r="5" fill="#5C4208"/>
-          </svg>
+          <img 
+            src={whatsappLogo} 
+            alt="Kwa Khanye Logo" 
+            style={{ 
+              width: '36px', 
+              height: '36px', 
+              objectFit: 'cover',
+              borderRadius: '50%'
+            }} 
+          />
           <span className="brand-name">Kwa Khanye</span>
         </div>
 
@@ -116,7 +121,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Fixed: Changed from <a> to <Link> for proper routing */}
         <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
 
         <p className="auth-footer-text">
