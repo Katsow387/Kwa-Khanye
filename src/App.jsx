@@ -7,8 +7,9 @@ import HomeVR from './pages/HomeVR/HomeVR.jsx';
 import Bioscope from './pages/Bioscope/Bioscope.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignUpPage from './pages/Auth/SignUpPage.jsx';
-// Import both components from the same file
 import { ForgotPasswordPage, ResetPasswordPage } from './pages/Auth/ForgotPasswordPage.jsx';
+import NFTs from './pages/HomeVR/NFTs.jsx';
+import OnlineStore from './pages/HomeVR/OnlineStore.jsx';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -33,6 +34,8 @@ function App() {
       <Route path="/music" element={<Music />} />
       <Route path="/homevr" element={<HomeVR />} />
       <Route path="/bioscope" element={<Bioscope />} />
+      <Route path="/nft" element={<NFTs />} />
+      <Route path="/store" element={<OnlineStore />} />
     </Routes>
   );
 }

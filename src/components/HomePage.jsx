@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import '../App.css';
 import logoWatermark from '../assets/images/kwa_khanye_logo.png';
 import backgroundImage from '../assets/images/Background.png';
+import potMusicImg from '../assets/images/pot_music.png';
+import potHomeVrImg from '../assets/images/pot_homevr.png';
+import potBioscopeImg from '../assets/images/pot_bioscope.png';
 
 const RondavelLogo = ({ size = 38 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100">
@@ -30,7 +33,7 @@ const categories = [
     label: 'Listen',
     title: 'Music',
     icon: '🎵',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&auto=format&fit=crop&q=80',
+    image: potMusicImg,
     items: ['The story of the album', 'Exclusive releases', 'Live sessions'],
     to: '/music',
   },
@@ -39,8 +42,7 @@ const categories = [
     label: 'Experience',
     title: 'Home VR',
     icon: '🏠',
-    image: 'https://images.unsplash.com/photo-1578301978018-3005759f48f7?w=800&auto=format&fit=crop&q=80',
-    imagePosition: 'center 30%',
+    image: potHomeVrImg,
     items: ['Art collection & NFTs', 'Virtual Museum', 'Online Store'],
     to: '/homevr',
   },
@@ -49,7 +51,7 @@ const categories = [
     label: 'Watch',
     title: 'Bioscope',
     icon: '🎬',
-    image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80',
+    image: potBioscopeImg,
     items: ['Building the album', 'Biographer', 'Music videos'],
     to: '/bioscope',
   },
@@ -57,22 +59,55 @@ const categories = [
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [doorOpen, setDoorOpen] = useState(false);
+  const [navigateTo, setNavigateTo] = useState(null);
+
+  const handleHomeVrClick = (e, targetPath) => {
+    e.preventDefault();
+    if (doorOpen) return;
+    setDoorOpen(true);
+    setNavigateTo(targetPath);
+    setTimeout(() => {
+      window.location.href = targetPath; // or use navigate from react-router-dom
+    }, 600);
+  };
 
   return (
     <div className="kk-page">
-      {/* Logo Watermark – fixed behind everything */}
+      {/* Logo Watermark */}
       <div
         className="kk-watermark-logo"
         style={{ backgroundImage: `url(${logoWatermark})` }}
       />
+
+      {/* Door Overlay (only shown when Home VR clicked) */}
+      {doorOpen && (
+        <div className="door-overlay">
+          <div className="kraal-door">
+            <div className="door-left">
+              <div className="wood-plank"></div>
+              <div className="wood-plank"></div>
+              <div className="wood-plank"></div>
+              <div className="iron-hinge"></div>
+              <div className="iron-hinge"></div>
+            </div>
+            <div className="door-right">
+              <div className="wood-plank"></div>
+              <div className="wood-plank"></div>
+              <div className="wood-plank"></div>
+              <div className="iron-hinge"></div>
+              <div className="iron-hinge"></div>
+              <div className="door-handle"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ====== HERO ====== */}
       <section className="kk-hero">
         <div className="kk-hero-bg" style={{ backgroundImage: `url(${backgroundImage})` }} />
         <div className="kk-hero-overlay" />
         <div className="kk-dust" />
-
-        {/* Artificial rondavels and trees have been removed */}
 
         <nav className="kk-navbar">
           <div className="kk-nav-logo">
@@ -84,7 +119,6 @@ export default function HomePage() {
             <li><Link to="/music"   onClick={() => setMenuOpen(false)}>Music</Link></li>
             <li><Link to="/homevr"  onClick={() => setMenuOpen(false)}>Home VR</Link></li>
             <li><Link to="/bioscope" onClick={() => setMenuOpen(false)}>Bioscope</Link></li>
-           
           </ul>
 
           <Link to="/login" className="kk-nav-btn">Enter the Kraal</Link>
@@ -134,6 +168,7 @@ export default function HomePage() {
 
       <div className="kk-geo-border" />
 
+      {/* ====== CATEGORIES ====== */}
       <section className="kk-categories">
         <div className="kk-watermark">UBUNTU</div>
 
@@ -149,29 +184,63 @@ export default function HomePage() {
         </p>
 
         <div className="kk-pots-grid">
-          {categories.map((cat) => (
-            <Link to={cat.to} key={cat.id} className="kk-pot-card">
-              <div
-                className="kk-pot-card-img"
-                style={{
-                  backgroundImage: `url('${cat.image}')`,
-                  backgroundPosition: cat.imagePosition || 'center',
-                }}
-              />
-              <div className="kk-pot-card-overlay" />
-              <div className="kk-pot-card-arrow"><ArrowIcon /></div>
-              <div className="kk-pot-card-content">
-                <div className="kk-pot-card-icon">{cat.icon}</div>
-                <div className="kk-pot-card-category">{cat.label}</div>
-                <div className="kk-pot-card-title">{cat.title}</div>
-                <ul className="kk-pot-card-items">
-                  {cat.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </Link>
-          ))}
+          {categories.map((cat) => {
+            // For Home VR only, use custom click handler with door animation
+            if (cat.id === 'homevr') {
+              return (
+                <a
+                  key={cat.id}
+                  href={cat.to}
+                  onClick={(e) => handleHomeVrClick(e, cat.to)}
+                  className="kk-pot-card"
+                >
+                  <div
+                    className="kk-pot-card-img"
+                    style={{
+                      backgroundImage: `url(${cat.image})`,
+                      backgroundSize: 'cover',
+                    }}
+                  />
+                  <div className="kk-pot-card-overlay" />
+                  <div className="kk-pot-card-arrow"><ArrowIcon /></div>
+                  <div className="kk-pot-card-content">
+                    <div className="kk-pot-card-icon">{cat.icon}</div>
+                    <div className="kk-pot-card-category">{cat.label}</div>
+                    <div className="kk-pot-card-title">{cat.title}</div>
+                    <ul className="kk-pot-card-items">
+                      {cat.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </a>
+              );
+            }
+            // Other cards use normal Link
+            return (
+              <Link to={cat.to} key={cat.id} className="kk-pot-card">
+                <div
+                  className="kk-pot-card-img"
+                  style={{
+                    backgroundImage: `url(${cat.image})`,
+                    backgroundSize: 'cover',
+                  }}
+                />
+                <div className="kk-pot-card-overlay" />
+                <div className="kk-pot-card-arrow"><ArrowIcon /></div>
+                <div className="kk-pot-card-content">
+                  <div className="kk-pot-card-icon">{cat.icon}</div>
+                  <div className="kk-pot-card-category">{cat.label}</div>
+                  <div className="kk-pot-card-title">{cat.title}</div>
+                  <ul className="kk-pot-card-items">
+                    {cat.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
