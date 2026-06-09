@@ -1,86 +1,47 @@
 ﻿import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../App.css';
-import logoWatermark from '../assets/images/kwa_khanye_logo.png';
 import backgroundImage from '../assets/images/Background.png';
 import potMusicImg from '../assets/images/pot_music.png';
 import potHomeVrImg from '../assets/images/pot_homevr.png';
 import potBioscopeImg from '../assets/images/pot_bioscope.png';
 
-const RondavelLogo = ({ size = 38 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100">
-    <polygon points="50,8 8,48 92,48" fill="#8B6914" />
-    <rect x="7" y="46" width="86" height="5" rx="2" fill="#5C4208" />
-    <ellipse cx="50" cy="70" rx="34" ry="24" fill="#D4895A" />
-    <polyline
-      points="16,48 22,40 28,48 34,40 40,48 46,40 52,48 58,40 64,48 70,40 76,48 82,40 88,48"
-      fill="none" stroke="#8B3A0F" strokeWidth="2.5"
-    />
-    <rect x="42" y="60" width="16" height="22" rx="8" fill="#6B2D0A" />
-    <circle cx="50" cy="8" r="5" fill="#e8a84c" />
-  </svg>
-);
-
-const ArrowIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8a84c" strokeWidth="2">
-    <path d="M5 12h14M12 5l7 7-7 7" />
-  </svg>
-);
-
-const categories = [
-  {
-    id: 'music',
-    label: 'Listen',
-    title: 'Music',
-    icon: '🎵',
-    image: potMusicImg,
-    items: ['The story of the album', 'Exclusive releases', 'Live sessions'],
-    to: '/music',
-  },
-  {
-    id: 'homevr',
-    label: 'Experience',
-    title: 'Home VR',
-    icon: '🏠',
-    image: potHomeVrImg,
-    items: ['Art collection & NFTs', 'Virtual Museum', 'Online Store'],
-    to: '/homevr',
-  },
-  {
-    id: 'bioscope',
-    label: 'Watch',
-    title: 'Bioscope',
-    icon: '🎬',
-    image: potBioscopeImg,
-    items: ['Building the album', 'Biographer', 'Music videos'],
-    to: '/bioscope',
-  },
-];
-
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const [doorOpen, setDoorOpen] = useState(false);
-  const [navigateTo, setNavigateTo] = useState(null);
 
-  const handleHomeVrClick = (e, targetPath) => {
+  const handleHomeVrClick = (e) => {
     e.preventDefault();
     if (doorOpen) return;
     setDoorOpen(true);
-    setNavigateTo(targetPath);
     setTimeout(() => {
-      window.location.href = targetPath; // or use navigate from react-router-dom
+      navigate('/homevr');
     }, 600);
   };
 
   return (
-    <div className="kk-page">
-      {/* Logo Watermark */}
-      <div
-        className="kk-watermark-logo"
-        style={{ backgroundImage: `url(${logoWatermark})` }}
-      />
+    <div className="homepage-container" style={{ backgroundImage: `url(${backgroundImage})` }}>
+      {/* Dark overlay */}
+      <div className="homepage-overlay"></div>
 
-      {/* Door Overlay (only shown when Home VR clicked) */}
+      {/* ── NAVBAR ── */}
+      <nav className="hp-navbar">
+        <div className="hp-nav-logo">
+          <span className="hp-nav-logo-icon">🏺</span>
+          <span className="hp-nav-logo-text">KWA KHANYE</span>
+        </div>
+        <div className="hp-nav-links">
+          <Link to="/music" className="hp-nav-link">MUSIC</Link>
+          <div className="hp-nav-link-group">
+            <a href="/homevr" onClick={handleHomeVrClick} className="hp-nav-link hp-nav-link--active">HOME VR</a>
+            <span className="hp-nav-sub">EXPLORE THE KRAAL</span>
+          </div>
+          <Link to="/bioscope" className="hp-nav-link">BIOSCOPE</Link>
+        </div>
+        <Link to="/homevr" className="hp-nav-cta">ENTER THE KRAAL</Link>
+      </nav>
+
+      {/* Door animation */}
       {doorOpen && (
         <div className="door-overlay">
           <div className="kraal-door">
@@ -103,190 +64,55 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ====== HERO ====== */}
-      <section className="kk-hero">
-        <div className="kk-hero-bg" style={{ backgroundImage: `url(${backgroundImage})` }} />
-        <div className="kk-hero-overlay" />
-        <div className="kk-dust" />
+      {/* ── HERO CONTENT ── */}
+      <div className="homepage-content">
+        <h1 className="hp-hero-title">Everything Lives Here</h1>
+        <p className="hp-hero-subtitle">Music, art, stories and more — gathered around one fire</p>
 
-        <nav className="kk-navbar">
-          <div className="kk-nav-logo">
-            <RondavelLogo size={38} />
-            <span className="kk-nav-brand">Kwa Khanye</span>
-          </div>
+        {/* ── YARD PORTS (CIRCULAR GOLD FRAMES) ── */}
+        <div className="yard-ports-container">
+          {/* Music */}
+          <Link to="/music" className="yard-port-item">
+            <div className="circular-frame">
+              <img src={potMusicImg} alt="Music" />
+            </div>
+            <h3 className="yard-port-title">MUSIC</h3>
+            <span className="yard-port-subtitle">LISTEN</span>
+          </Link>
 
-          <ul className={`kk-nav-links ${menuOpen ? 'open' : ''}`}>
-            <li><Link to="/music"   onClick={() => setMenuOpen(false)}>Music</Link></li>
-            <li><Link to="/homevr"  onClick={() => setMenuOpen(false)}>Home VR</Link></li>
-            <li><Link to="/bioscope" onClick={() => setMenuOpen(false)}>Bioscope</Link></li>
-          </ul>
+          {/* Home VR (with door animation) */}
+          <a href="/homevr" onClick={handleHomeVrClick} className="yard-port-item">
+            <div className="circular-frame">
+              <img src={potHomeVrImg} alt="Home VR" />
+            </div>
+            <h3 className="yard-port-title">HOME VR</h3>
+            <span className="yard-port-subtitle">EXPERIENCE</span>
+          </a>
 
-          <Link to="/login" className="kk-nav-btn">Enter the Kraal</Link>
+          {/* Bioscope */}
+          <Link to="/bioscope" className="yard-port-item">
+            <div className="circular-frame">
+              <img src={potBioscopeImg} alt="Bioscope" />
+            </div>
+            <h3 className="yard-port-title">BIOSCOPE</h3>
+            <span className="yard-port-subtitle">WATCH</span>
+          </Link>
+        </div>
 
-          <button
-            className={`kk-hamburger ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            <span /><span /><span />
-          </button>
-        </nav>
+        {/* CTA Button */}
+        <button className="hp-cta-btn" onClick={() => navigate('/homevr')}>
+          Discover Our World
+        </button>
 
-        <div className="kk-hero-content">
-          <div className="kk-eyebrow">
-            <div className="kk-eyebrow-dot" />
-            Home of Culture &mdash; Izindlu Zamasiko
-            <div className="kk-eyebrow-dot" />
-          </div>
-
-          <h1 className="kk-hero-title">
-            Kwa
-            <span className="kk-title-accent">Khanye</span>
-          </h1>
-
-          <p className="kk-hero-tagline">
-            Where the fire never goes cold and the stories live forever
+        {/* Ubuntu Quote */}
+        <div className="hp-quote">
+          <p className="hp-quote-text">
+            Umuntu ngumuntu ngabantu — A person is a person through other persons.<br />
+            This is the spirit of Kwa Khanye.
           </p>
-
-          <div className="kk-hero-divider">
-            <div className="kk-divider-line" />
-            <div className="kk-divider-diamond" />
-            <div className="kk-divider-line" />
-          </div>
-
-          <div className="kk-cta-group">
-            <Link to="/signup" className="kk-btn-primary">Enter the Kraal</Link>
-            <Link to="/music"  className="kk-btn-ghost">Discover Our World</Link>
-          </div>
-        </div>
-
-        <div className="kk-scroll-hint">
-          <span>Scroll</span>
-          <div className="kk-scroll-arrow" />
-        </div>
-      </section>
-
-      <div className="kk-geo-border" />
-
-      {/* ====== CATEGORIES ====== */}
-      <section className="kk-categories">
-        <div className="kk-watermark">UBUNTU</div>
-
-        <div className="kk-section-label">
-          <div className="kk-label-line" />
-          <span>Explore the Kraal</span>
-          <div className="kk-label-line" />
-        </div>
-
-        <h2 className="kk-section-title">Everything Lives Here</h2>
-        <p className="kk-section-sub">
-          Music, art, stories and more — gathered around one fire
-        </p>
-
-        <div className="kk-pots-grid">
-          {categories.map((cat) => {
-            // For Home VR only, use custom click handler with door animation
-            if (cat.id === 'homevr') {
-              return (
-                <a
-                  key={cat.id}
-                  href={cat.to}
-                  onClick={(e) => handleHomeVrClick(e, cat.to)}
-                  className="kk-pot-card"
-                >
-                  <div
-                    className="kk-pot-card-img"
-                    style={{
-                      backgroundImage: `url(${cat.image})`,
-                      backgroundSize: 'cover',
-                    }}
-                  />
-                  <div className="kk-pot-card-overlay" />
-                  <div className="kk-pot-card-arrow"><ArrowIcon /></div>
-                  <div className="kk-pot-card-content">
-                    <div className="kk-pot-card-icon">{cat.icon}</div>
-                    <div className="kk-pot-card-category">{cat.label}</div>
-                    <div className="kk-pot-card-title">{cat.title}</div>
-                    <ul className="kk-pot-card-items">
-                      {cat.items.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </a>
-              );
-            }
-            // Other cards use normal Link
-            return (
-              <Link to={cat.to} key={cat.id} className="kk-pot-card">
-                <div
-                  className="kk-pot-card-img"
-                  style={{
-                    backgroundImage: `url(${cat.image})`,
-                    backgroundSize: 'cover',
-                  }}
-                />
-                <div className="kk-pot-card-overlay" />
-                <div className="kk-pot-card-arrow"><ArrowIcon /></div>
-                <div className="kk-pot-card-content">
-                  <div className="kk-pot-card-icon">{cat.icon}</div>
-                  <div className="kk-pot-card-category">{cat.label}</div>
-                  <div className="kk-pot-card-title">{cat.title}</div>
-                  <ul className="kk-pot-card-items">
-                    {cat.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="kk-texture-band">
-        <img
-          className="kk-texture-img"
-          src="https://images.unsplash.com/photo-1569763430887-71ff5eb42d7b?w=1400&auto=format&fit=crop&q=60"
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="kk-texture-overlay">
-          <div className="kk-pattern-row">
-            {['◆', '◇', '◆', '◇', '◆'].map((sym, i) => (
-              <React.Fragment key={i}>
-                <div className="kk-pattern-line" />
-                <span className="kk-pattern-symbol">{sym}</span>
-              </React.Fragment>
-            ))}
-            <div className="kk-pattern-line" />
-          </div>
+          <p className="hp-quote-author">UBUNTU — AFRICAN PHILOSOPHY</p>
         </div>
       </div>
-
-      <section className="kk-quote">
-        <span className="kk-quote-mark">&ldquo;</span>
-        <p className="kk-quote-text">
-          Umuntu ngumuntu ngabantu — A person is a person through other persons.
-          This is the spirit of Kwa Khanye.
-        </p>
-        <div className="kk-quote-attr">Ubuntu &mdash; African Philosophy</div>
-      </section>
-
-      <footer className="kk-footer">
-        <div>
-          <div className="kk-footer-brand">Kwa Khanye</div>
-          <div className="kk-footer-tagline">Home of Culture</div>
-        </div>
-
-        <ul className="kk-footer-links">
-          <li><Link to="/music">Music</Link></li>
-          <li><Link to="/homevr">Home VR</Link></li>
-          <li><Link to="/bioscope">Bioscope</Link></li>
-        </ul>
-
-        <div className="kk-footer-copy">&copy; 2026 Kwa Khanye</div>
-      </footer>
     </div>
   );
 }

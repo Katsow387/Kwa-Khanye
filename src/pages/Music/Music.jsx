@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import './Music.css';
+import musicBgImage from '../../assets/images/Music.png';
 
 const DEEZER_SEARCH_URL = '/api/deezer/search?q=';
 
@@ -25,19 +26,18 @@ function Music() {
 
   const audioRef = useRef(null);
   const searchTimeout = useRef(null);
+  const searchInputRef = useRef(null);
 
-  // ✅ AUTH CHECK – redirect to login if not authenticated
+  // Auth check
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login', { replace: true });
-      }
+      if (!session) navigate('/login', { replace: true });
     };
     checkAuth();
   }, [navigate]);
 
-  // Debounced search
+  // Debounced search (unchanged)
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     if (!searchQuery.trim()) {
@@ -77,6 +77,7 @@ function Music() {
     return () => clearTimeout(searchTimeout.current);
   }, [searchQuery]);
 
+  // All player functions (same as before, omitted for brevity – keep your existing implementations)
   const generateShuffledIndices = useCallback((playlist) => {
     const indices = playlist.map((_, idx) => idx);
     for (let i = indices.length - 1; i > 0; i--) {
@@ -85,13 +86,6 @@ function Music() {
     }
     return indices;
   }, []);
-
-  const playTrackAtIndex = (index) => {
-    if (!currentPlaylist.length) return;
-    setCurrentTrackIndex(index);
-    setIsPlaying(true);
-    setError('');
-  };
 
   const selectTrack = (track) => {
     setCurrentPlaylist(searchResults);
@@ -112,7 +106,6 @@ function Music() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => {
@@ -131,14 +124,12 @@ function Music() {
       setError('Playback error. The preview might be unavailable.');
       setIsPlaying(false);
     };
-
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('error', handleError);
-
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
@@ -152,7 +143,6 @@ function Music() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || currentTrackIndex < 0 || !currentPlaylist.length) return;
-
     let track;
     if (shuffle) {
       const realIndex = shuffledIndices[currentTrackIndex];
@@ -226,14 +216,8 @@ function Music() {
 
   const togglePlayPause = () => {
     if (!audioRef.current || currentTrackIndex === -1) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(err => {
-        console.error(err);
-        setError('Playback failed.');
-      });
-    }
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play().catch(err => setError('Playback failed.'));
   };
 
   const handleSeek = (e) => {
@@ -258,20 +242,14 @@ function Music() {
       const indices = generateShuffledIndices(currentPlaylist);
       setShuffledIndices(indices);
       let currentRealIndex;
-      if (shuffle) {
-        currentRealIndex = shuffledIndices[currentTrackIndex];
-      } else {
-        currentRealIndex = currentTrackIndex;
-      }
+      if (shuffle) currentRealIndex = shuffledIndices[currentTrackIndex];
+      else currentRealIndex = currentTrackIndex;
       const newShuffledIndex = indices.findIndex(i => i === currentRealIndex);
       setCurrentTrackIndex(newShuffledIndex !== -1 ? newShuffledIndex : 0);
     } else {
       let realIndex;
-      if (shuffle) {
-        realIndex = shuffledIndices[currentTrackIndex];
-      } else {
-        realIndex = currentTrackIndex;
-      }
+      if (shuffle) realIndex = shuffledIndices[currentTrackIndex];
+      else realIndex = currentTrackIndex;
       setCurrentTrackIndex(realIndex);
     }
   };
@@ -301,183 +279,170 @@ function Music() {
 
   const currentTrack = getCurrentTrack();
 
+  const focusSearch = () => {
+    searchInputRef.current?.focus();
+  };
+
   return (
-    <div className="music-page">
-      <div className="music-header">
-        <div className="music-eyebrow">🎵 Kwa Khanye</div>
-        <h1>The Music Kraal</h1>
-        <p>Search any song in the world – play previews, shuffle, repeat, and more</p>
-        <div className="music-search-wrap">
-          <span className="music-search-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            className="music-search"
-            placeholder="Search for a song (e.g., 'Burna Boy', 'Tyla', 'Love Nwantiti')"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {error && <div className="error-banner">{error}</div>}
-
-      {loading ? (
-        <div className="loading-spinner">
-          <div className="spinner-dot"></div>
-          <div className="spinner-dot"></div>
-          <div className="spinner-dot"></div>
-        </div>
-      ) : (
-        <div className="music-tracklist">
-          {searchResults.length === 0 && searchQuery.trim() !== '' && !loading && (
-            <div className="empty-state">
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎧</div>
-              <p>No results. Try another song or artist.</p>
-            </div>
-          )}
-          {searchResults.length > 0 && (
-            <>
-              <div className="tracklist-header">
-                <span>#</span>
-                <span>Title</span>
-                <span>Artist</span>
-                <span>Duration</span>
-              </div>
-              {searchResults.map((track, idx) => {
-                const isActive = currentTrack && currentTrack.id === track.id;
-                return (
-                  <div
-                    key={track.id}
-                    className={`track-item ${isActive ? 'active' : ''}`}
-                    onClick={() => selectTrack(track)}
-                  >
-                    <div className="track-number">
-                      {isActive ? <span className="play-indicator">▶</span> : idx + 1}
-                    </div>
-                    <div className="track-info">
-                      <span className="track-title">{track.title}</span>
-                    </div>
-                    <div className="track-artist">{track.artist}</div>
-                    <div className="track-duration">{formatTime(track.duration)}</div>
-                  </div>
-                );
-              })}
-            </>
-          )}
-        </div>
-      )}
-
-      <audio ref={audioRef} volume={volume} />
-
-      {currentTrack && (
-        <div className="now-playing-bar">
-          <div className="player-container">
-            <div className="player-track-info">
-              <div className="player-cover">
-                {currentTrack.cover_small ? (
-                  <img src={currentTrack.cover_small} alt={currentTrack.title} />
-                ) : (
-                  <span>🎵</span>
-                )}
-              </div>
-              <div className="player-track-text">
-                <div className="player-track-title">{currentTrack.title}</div>
-                <div className="player-track-artist">{currentTrack.artist}</div>
-              </div>
-            </div>
-
-            <div className="player-controls">
-              <div className="controls-buttons">
-                <button
-                  className={`ctrl-btn ${shuffle ? 'active' : ''}`}
-                  onClick={toggleShuffle}
-                  title="Shuffle"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="16 3 21 3 21 8" />
-                    <line x1="4" y1="20" x2="21" y2="3" />
-                    <polyline points="21 16 21 21 16 21" />
-                    <line x1="15" y1="15" x2="21" y2="21" />
-                    <line x1="4" y1="4" x2="9" y2="9" />
-                  </svg>
-                </button>
-                <button className="ctrl-btn" onClick={prevTrack} title="Previous">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="19 20 9 12 19 4 19 20" />
-                    <line x1="5" y1="19" x2="5" y2="5" />
-                  </svg>
-                </button>
-                <button className="ctrl-btn play-pause" onClick={togglePlayPause} title="Play/Pause">
-                  {isPlaying ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <rect x="6" y="4" width="4" height="16" />
-                      <rect x="14" y="4" width="4" height="16" />
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  )}
-                </button>
-                <button className="ctrl-btn" onClick={nextTrack} title="Next">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="5 4 15 12 5 20 5 4" />
-                    <line x1="19" y1="5" x2="19" y2="19" />
-                  </svg>
-                </button>
-                <button
-                  className={`ctrl-btn ${repeat !== 'off' ? 'active' : ''}`}
-                  onClick={toggleRepeat}
-                  title={repeat === 'off' ? 'Repeat off' : repeat === 'one' ? 'Repeat one' : 'Repeat all'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17 1l4 4-4 4" />
-                    <path d="M3 11V9a4 4 0 014-4h14" />
-                    <path d="M7 23l-4-4 4-4" />
-                    <path d="M21 13v2a4 4 0 01-4 4H3" />
-                  </svg>
-                  {repeat === 'one' && <span style={{ fontSize: '10px', marginLeft: '2px' }}>1</span>}
-                </button>
-              </div>
-              <div className="progress-area">
-                <span className="time-current">{formatTime(currentTime)}</span>
-                <input
-                  type="range"
-                  className="progress-bar"
-                  min="0"
-                  max={duration || 0}
-                  value={currentTime}
-                  onChange={handleSeek}
-                  step="0.1"
-                />
-                <span className="time-total">{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            <div className="volume-control">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    <div className="music-page" style={{ backgroundImage: `url(${musicBgImage})` }}>
+      <div className="music-overlay" />
+      <div className="music-content">
+        <div className="music-header">
+          <div className="music-eyebrow">🎵 Kwa Khanye</div>
+          <h1>The Music Kraal</h1>
+          <p>Search any song in the world – play previews, shuffle, repeat, and more</p>
+          <div className="music-search-wrap">
+            <span className="music-search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input
-                type="range"
-                className="volume-slider"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-              />
-            </div>
+            </span>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="music-search"
+              placeholder="Search for a song (e.g., 'Burna Boy', 'Tyla', 'Love Nwantiti')"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
-      )}
+
+        {error && <div className="error-banner">{error}</div>}
+
+        {loading ? (
+          <div className="loading-spinner">
+            <div className="spinner-dot"></div>
+            <div className="spinner-dot"></div>
+            <div className="spinner-dot"></div>
+          </div>
+        ) : (
+          <div className="music-tracklist">
+            {searchResults.length === 0 && searchQuery.trim() !== '' && !loading && (
+              <div className="empty-state">
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎧</div>
+                <p>No results. Try another song or artist.</p>
+              </div>
+            )}
+            {searchResults.length > 0 && (
+              <>
+                <div className="tracklist-header">
+                  <span>#</span>
+                  <span>Title</span>
+                  <span>Artist</span>
+                  <span>Duration</span>
+                </div>
+                {searchResults.map((track, idx) => {
+                  const isActive = currentTrack && currentTrack.id === track.id;
+                  return (
+                    <div
+                      key={track.id}
+                      className={`track-item ${isActive ? 'active' : ''}`}
+                      onClick={() => selectTrack(track)}
+                    >
+                      <div className="track-number">
+                        {isActive ? <span className="play-indicator">▶</span> : idx + 1}
+                      </div>
+                      <div className="track-info">
+                        <span className="track-title">{track.title}</span>
+                      </div>
+                      <div className="track-artist">{track.artist}</div>
+                      <div className="track-duration">{formatTime(track.duration)}</div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        )}
+
+        <audio ref={audioRef} volume={volume} />
+
+        {currentTrack && (
+          <div className="now-playing-bar">
+            <div className="player-container">
+              <div className="player-track-info">
+                <div className="player-cover">
+                  {currentTrack.cover_small ? (
+                    <img src={currentTrack.cover_small} alt={currentTrack.title} />
+                  ) : (
+                    <span>🎵</span>
+                  )}
+                </div>
+                <div className="player-track-text">
+                  <div className="player-track-title">{currentTrack.title}</div>
+                  <div className="player-track-artist">{currentTrack.artist}</div>
+                </div>
+              </div>
+
+              <div className="player-controls">
+                <div className="controls-buttons">
+                  <button className={`ctrl-btn ${shuffle ? 'active' : ''}`} onClick={toggleShuffle} title="Shuffle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="16 3 21 3 21 8" />
+                      <line x1="4" y1="20" x2="21" y2="3" />
+                      <polyline points="21 16 21 21 16 21" />
+                      <line x1="15" y1="15" x2="21" y2="21" />
+                      <line x1="4" y1="4" x2="9" y2="9" />
+                    </svg>
+                  </button>
+                  <button className="ctrl-btn" onClick={prevTrack} title="Previous">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="19 20 9 12 19 4 19 20" />
+                      <line x1="5" y1="19" x2="5" y2="5" />
+                    </svg>
+                  </button>
+                  <button className="ctrl-btn play-pause" onClick={togglePlayPause} title="Play/Pause">
+                    {isPlaying ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <rect x="6" y="4" width="4" height="16" />
+                        <rect x="14" y="4" width="4" height="16" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    )}
+                  </button>
+                  <button className="ctrl-btn" onClick={nextTrack} title="Next">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="5 4 15 12 5 20 5 4" />
+                      <line x1="19" y1="5" x2="19" y2="19" />
+                    </svg>
+                  </button>
+                  <button className={`ctrl-btn ${repeat !== 'off' ? 'active' : ''}`} onClick={toggleRepeat} title={repeat === 'off' ? 'Repeat off' : repeat === 'one' ? 'Repeat one' : 'Repeat all'}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17 1l4 4-4 4" />
+                      <path d="M3 11V9a4 4 0 014-4h14" />
+                      <path d="M7 23l-4-4 4-4" />
+                      <path d="M21 13v2a4 4 0 01-4 4H3" />
+                    </svg>
+                    {repeat === 'one' && <span className="repeat-one-indicator">1</span>}
+                  </button>
+                </div>
+                <div className="progress-area">
+                  <span className="time-current">{formatTime(currentTime)}</span>
+                  <input type="range" className="progress-bar" min="0" max={duration || 0} value={currentTime} onChange={handleSeek} step="0.1" />
+                  <span className="time-total">{formatTime(duration)}</span>
+                </div>
+              </div>
+
+              <div className="volume-control">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+                <input type="range" className="volume-slider" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Invisible hotspot that focuses search input */}
+      <div className="search-hotspot" onClick={focusSearch} />
     </div>
   );
 }
