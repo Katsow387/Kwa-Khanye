@@ -6,8 +6,23 @@ import potMusicImg from '../assets/images/pot_music.png';
 import potHomeVrImg from '../assets/images/pot_homevr.png';
 import potBioscopeImg from '../assets/images/pot_bioscope.png';
 
+const RondavelLogo = ({ size = 38 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100">
+    <polygon points="50,8 8,48 92,48" fill="#8B6914" />
+    <rect x="7" y="46" width="86" height="5" rx="2" fill="#5C4208" />
+    <ellipse cx="50" cy="70" rx="34" ry="24" fill="#D4895A" />
+    <polyline
+      points="16,48 22,40 28,48 34,40 40,48 46,40 52,48 58,40 64,48 70,40 76,48 82,40 88,48"
+      fill="none" stroke="#8B3A0F" strokeWidth="2.5"
+    />
+    <rect x="42" y="60" width="16" height="22" rx="8" fill="#6B2D0A" />
+    <circle cx="50" cy="8" r="5" fill="#e8a84c" />
+  </svg>
+);
+
 export default function HomePage() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [doorOpen, setDoorOpen] = useState(false);
 
   const handleHomeVrClick = (e) => {
@@ -24,21 +39,28 @@ export default function HomePage() {
       {/* Dark overlay */}
       <div className="homepage-overlay"></div>
 
-      {/* ── NAVBAR ── */}
-      <nav className="hp-navbar">
-        <div className="hp-nav-logo">
-          <span className="hp-nav-logo-icon">🏺</span>
-          <span className="hp-nav-logo-text">KWA KHANYE</span>
+      {/* ====== NAVBAR ====== */}
+      <nav className="kk-navbar">
+        <div className="kk-nav-logo">
+          <RondavelLogo size={38} />
+          <span className="kk-nav-brand">Kwa Khanye</span>
         </div>
-        <div className="hp-nav-links">
-          <Link to="/music" className="hp-nav-link">MUSIC</Link>
-          <div className="hp-nav-link-group">
-            <a href="/homevr" onClick={handleHomeVrClick} className="hp-nav-link hp-nav-link--active">HOME VR</a>
-            <span className="hp-nav-sub">EXPLORE THE KRAAL</span>
-          </div>
-          <Link to="/bioscope" className="hp-nav-link">BIOSCOPE</Link>
-        </div>
-        <Link to="/homevr" className="hp-nav-cta">ENTER THE KRAAL</Link>
+
+        <ul className={`kk-nav-links ${menuOpen ? 'open' : ''}`}>
+          <li><Link to="/music" onClick={() => setMenuOpen(false)}>Music</Link></li>
+          <li><Link to="/homevr" onClick={() => setMenuOpen(false)}>Home VR</Link></li>
+          <li><Link to="/bioscope" onClick={() => setMenuOpen(false)}>Bioscope</Link></li>
+        </ul>
+
+        <Link to="/login" className="kk-nav-btn">Enter the Kraal</Link>
+
+        <button
+          className={`kk-hamburger ${menuOpen ? 'open' : ''}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span /><span /><span />
+        </button>
       </nav>
 
       {/* Door animation */}

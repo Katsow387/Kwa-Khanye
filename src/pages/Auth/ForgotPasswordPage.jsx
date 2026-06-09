@@ -4,22 +4,22 @@ import { supabase } from '../../supabase';
 import './AuthPages.css';
 import './ForgotPasswordPage.css';
 
+// Import your WhatsApp logo
+const whatsappLogo = '/assets/images/WhatsApp Image 2026-06-02 at 14.41.43.jpeg';
+
 // ─── Shared Logo ─────────────────────────────────────────────────────────────
 function KraLogo({ size = 36 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100">
-      <polygon points="50,5 10,55 90,55" fill="#8B6914" />
-      <rect x="8" y="53" width="84" height="6" rx="2" fill="#5C4208" />
-      <ellipse cx="50" cy="72" rx="32" ry="22" fill="#D4895A" />
-      <polyline
-        points="18,55 24,47 30,55 36,47 42,55 48,47 54,55 60,47 66,55 72,47 78,55 84,47"
-        fill="none"
-        stroke="#8B3A0F"
-        strokeWidth="2"
-      />
-      <rect x="42" y="68" width="16" height="20" rx="8" fill="#6B2D0A" />
-      <circle cx="50" cy="5" r="5" fill="#5C4208" />
-    </svg>
+    <img 
+      src={whatsappLogo} 
+      alt="Kwa Khanye Logo" 
+      style={{ 
+        width: `${size}px`, 
+        height: `${size}px`, 
+        objectFit: 'cover',
+        borderRadius: '50%'
+      }} 
+    />
   );
 }
 
@@ -139,14 +139,45 @@ function UpdatePassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [isValidSession, setIsValidSession] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+    // Check if we have a valid recovery session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check if this is a recovery session
+      if (!session) {
+        setIsValidSession(false);
+        setError('This reset link is invalid or has expired. Please request a new one.');
+      } else {
+        // Check if the session is from password recovery
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && session) {
+          // Valid session, allow password reset
+          setIsValidSession(true);
+        } else {
+          setIsValidSession(false);
+          setError('Invalid reset session. Please request a new reset link.');
+        }
+      }
+    };
+    
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // User is now in a temporary session — ready to update password
+        // Valid recovery session
+        setIsValidSession(true);
+        setError('');
+      } else if (event === 'SIGNED_OUT' && !session) {
+        // No session
+        setIsValidSession(false);
       }
     });
+    
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -173,6 +204,39 @@ function UpdatePassword() {
     }
     setLoading(false);
   };
+
+  // Show error page if no valid session
+  if (!isValidSession && !done) {
+    return (
+      <div className="auth-container">
+        <div className="auth-bg-blur">Kwa Khanye</div>
+        <div className="auth-card auth-card--centered">
+          <div className="auth-brand auth-brand--centered">
+            <KraLogo size={48} />
+          </div>
+
+          <div className="fp-status-badge" style={{ background: '#dc2626' }}>⚠️ Link Expired</div>
+
+          <h2 className="auth-title fp-success-title">Reset Link Expired</h2>
+          <p className="auth-subtitle fp-success-subtitle">
+            This password reset link is invalid or has expired.
+            <br />
+            Please request a new password reset link.
+          </p>
+
+          <Link to="/forgot-password" className="submit-btn fp-back-btn">
+            Request New Link
+          </Link>
+
+          <Link to="/login" className="forgot-password-link fp-retry-btn">
+            Back to Sign In
+          </Link>
+
+          <p className="fp-footer-note">Kwa Khanye &mdash; Home of Culture</p>
+        </div>
+      </div>
+    );
+  }
 
   // Derive strength level for CSS class
   const strengthClass =
@@ -298,8 +362,6 @@ function UpdatePassword() {
 }
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
-// Route /forgot-password → <ForgotPasswordPage />
-// Route /reset-password  → <ResetPasswordPage />
 export function ForgotPasswordPage() {
   return <RequestReset />;
 }
