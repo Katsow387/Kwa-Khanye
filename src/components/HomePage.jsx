@@ -1,81 +1,108 @@
-﻿import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../App.css';
-import backgroundImage from '../assets/images/Background.png';
-import potMusicImg from '../assets/images/pot_music.png';
-import potHomeVrImg from '../assets/images/pot_homevr.png';
-import potBioscopeImg from '../assets/images/pot_bioscope.png';
+﻿import { useNavigate } from 'react-router-dom';
+import { useSession } from '../App';
+import { COUNTRIES } from '../constants/countries';
+import backgroundImage from '../assets/images/Background_image.png';
+import globeImage from '../assets/images/Globe.jpg';
+import Header from './Header';  // <-- import the header
+
+function CountryStep({ onSelect, isGuest }) {
+  return (
+    <div>
+      <div className="country-step-header">
+        {globeImage ? (
+          <img src={globeImage} alt="Globe" className="country-globe-img" />
+        ) : (
+          <span style={{ fontSize: '2.8rem' }}>🌍</span>
+        )}
+        <div>
+          <div className="step-badge-container">
+            <span className="step-badge-text">CHOOSE COUNTRY</span>
+          </div>
+          <h2 className="explore-card-heading">WHERE DO YOU WANT TO EXPLORE?</h2>
+          <p className="explore-card-subheading">Select a country to discover its cultures and artists.</p>
+        </div>
+      </div>
+
+      <div className="country-selection-grid">
+        {COUNTRIES.map(c => {
+          const guestCanAccess = c.guestAccessible === true;
+          const isDisabled = !c.available || (isGuest && !guestCanAccess);
+
+          return (
+            <button
+              key={c.id}
+              onClick={() => {
+                if (c.available && (!isGuest || guestCanAccess)) {
+                  onSelect(c);
+                }
+              }}
+              disabled={isDisabled}
+              className={`country-grid-card ${c.available ? 'card-active' : 'card-disabled'}`}
+            >
+              <div className="flag-visual-container">
+                <img 
+                  src={`https://flagcdn.com/${c.id}.svg`} 
+                  alt={c.name} 
+                  className="country-flag-asset"
+                />
+              </div>
+              <div className="country-iso-display-code">{c.code}</div>
+              <span className="country-card-name">{c.name}</span>
+              <span className="country-card-tagline">{c.tagline}</span>
+              
+              {isGuest && !guestCanAccess && c.available && (
+                <div className="guest-lockout-mask">
+                  <span className="lockout-text">Sign in to explore</span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [doorOpen, setDoorOpen] = useState(false);
+  const session = useSession();
 
-  const handleHomeVrClick = (e) => {
-    e.preventDefault();
-    if (doorOpen) return;
-    setDoorOpen(true);
-    setTimeout(() => {
-      navigate('/homevr');
-    }, 600);
+  const handleCountrySelect = (country) => {
+    navigate(`/country/${country.id}`);
   };
 
   return (
-    <div className="hero-viewport" style={{ backgroundImage: `url(${backgroundImage})` }}>
-      {/* Door overlay */}
-      {doorOpen && (
-        <div className="door-overlay">
-          <div className="kraal-door">
-            <div className="door-left"><div className="wood-plank"></div><div className="wood-plank"></div><div className="wood-plank"></div><div className="iron-hinge"></div><div className="iron-hinge"></div></div>
-            <div className="door-right"><div className="wood-plank"></div><div className="wood-plank"></div><div className="wood-plank"></div><div className="iron-hinge"></div><div className="iron-hinge"></div><div className="door-handle"></div></div>
+    <>
+      {/* Header rendered here – outside the fixed background container */}
+      <Header session={session} />
+
+      <div 
+        className="global-app-container" 
+        style={{
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+          backgroundColor: '#1a0d06',
+        }}
+      >
+        <div className="hero-viewport">
+          <div className="main-content-layout-wrapper">
+            <div className="hero-branding-center">
+              <h1 className="hero-main-title">Kraal Culture</h1>
+              <p className="hero-sub-tagline">EMBARK ON A JOURNEY THE KRAAL IS OPEN</p>
+            </div>
+
+            <div className="central-exploration-card">
+              <div className="top-edge-accent-line" />
+              <CountryStep onSelect={handleCountrySelect} isGuest={!session} />
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Main content with visible calabash circles */}
-      <div className="main-content">
-        <h1 className="main-title">EVERYTHING LIVES HERE</h1>
-        <p className="sub-title">EMBARK ON A JOURNEY. THE KRAAL IS OPEN.</p>
-
-        <div className="calabash-container">
-          <Link to="/music" className="calabash">
-            <div className="gold-ring">
-              <div className="calabash-inner">
-                <img src={potMusicImg} alt="Music" />
-              </div>
-            </div>
-            <h3 className="calabash-title">MUSIC</h3>
-            <span className="calabash-action">LISTEN</span>
-          </Link>
-
-          <a href="/homevr" onClick={handleHomeVrClick} className="calabash">
-            <div className="gold-ring">
-              <div className="calabash-inner">
-                <img src={potHomeVrImg} alt="Home VR" />
-              </div>
-            </div>
-            <h3 className="calabash-title">HOME VR</h3>
-            <span className="calabash-action">EXPERIENCE</span>
-          </a>
-
-          <Link to="/bioscope" className="calabash">
-            <div className="gold-ring">
-              <div className="calabash-inner">
-                <img src={potBioscopeImg} alt="Bioscope" />
-              </div>
-            </div>
-            <h3 className="calabash-title">BIOSCOPE</h3>
-            <span className="calabash-action">WATCH</span>
-          </Link>
-        </div>
-
-        <button className="discover-btn" onClick={() => navigate('/homevr')}>Discover Our World</button>
-
-        <div className="quote-box">
-          <p>Umuntu ngumuntu ngabantu — A person is a person through other persons.</p>
-          <p>This is the spirit of Kwa Khanye.</p>
-          <span>UBUNTU — AFRICAN PHILOSOPHY</span>
+          <footer className="global-proverb-footer-bar">
+            <p className="proverb-translation-string">
+              Umuntu ngumuntu ngabantu. A person is a person through other persons.
+            </p>
+          </footer>
         </div>
       </div>
-    </div>
+    </>
   );
 }

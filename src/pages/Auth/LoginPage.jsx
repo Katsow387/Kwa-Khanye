@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import './AuthPages.css';
 
-// Import your WhatsApp logo
-const whatsappLogo = '/assets/images/WhatsApp Image 2026-06-02 at 14.41.43.jpeg';
+// Updated logo path
+const logoPath = '/assets/images/KwaKhanye_logo.jpeg';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="auth-card">
         <div className="auth-brand">
           <img 
-            src={whatsappLogo} 
+            src={logoPath} 
             alt="Kwa Khanye Logo" 
             style={{ 
               width: '36px', 

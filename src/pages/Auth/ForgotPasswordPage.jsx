@@ -4,14 +4,13 @@ import { supabase } from '../../supabase';
 import './AuthPages.css';
 import './ForgotPasswordPage.css';
 
-// Import your WhatsApp logo
-const whatsappLogo = '/assets/images/WhatsApp Image 2026-06-02 at 14.41.43.jpeg';
+const logoPath = '/assets/images/KwaKhanye_logo.jpeg';
 
 // ─── Shared Logo ─────────────────────────────────────────────────────────────
 function KraLogo({ size = 36 }) {
   return (
     <img 
-      src={whatsappLogo} 
+      src={logoPath} 
       alt="Kwa Khanye Logo" 
       style={{ 
         width: `${size}px`, 
@@ -131,7 +130,7 @@ function RequestReset() {
   );
 }
 
-// ─── Step 2 : Update Password (landed from email link) ────────────────────────
+// ─── Step 2 : Update Password ─────────────────────────────────────────────────
 function UpdatePassword() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -143,19 +142,14 @@ function UpdatePassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have a valid recovery session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      // Check if this is a recovery session
       if (!session) {
         setIsValidSession(false);
         setError('This reset link is invalid or has expired. Please request a new one.');
       } else {
-        // Check if the session is from password recovery
         const { data: { user } } = await supabase.auth.getUser();
         if (user && session) {
-          // Valid session, allow password reset
           setIsValidSession(true);
         } else {
           setIsValidSession(false);
@@ -163,21 +157,16 @@ function UpdatePassword() {
         }
       }
     };
-    
     checkSession();
 
-    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Valid recovery session
         setIsValidSession(true);
         setError('');
       } else if (event === 'SIGNED_OUT' && !session) {
-        // No session
         setIsValidSession(false);
       }
     });
-    
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -205,7 +194,6 @@ function UpdatePassword() {
     setLoading(false);
   };
 
-  // Show error page if no valid session
   if (!isValidSession && !done) {
     return (
       <div className="auth-container">
@@ -238,7 +226,6 @@ function UpdatePassword() {
     );
   }
 
-  // Derive strength level for CSS class
   const strengthClass =
     password.length === 0
       ? ''
@@ -298,7 +285,6 @@ function UpdatePassword() {
         <p className="auth-subtitle">Make it strong — protect the Kraal</p>
 
         <form onSubmit={handleSubmit}>
-          {/* New Password */}
           <div className="form-group">
             <div className="label-row">
               <label className="form-label">New Password</label>
@@ -328,12 +314,10 @@ function UpdatePassword() {
             </div>
           </div>
 
-          {/* Strength hint */}
           {password.length > 0 && (
             <p className={`fp-strength ${strengthClass}`}>{strengthLabel}</p>
           )}
 
-          {/* Confirm Password */}
           <div className="form-group">
             <div className="label-row">
               <label className="form-label">Confirm Password</label>
