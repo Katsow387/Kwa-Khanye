@@ -9,22 +9,41 @@ export default function ArtistsPage() {
   const [artists, setArtists] = useState([]);
   const [filteredArtists, setFilteredArtists] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [cultureFilter, setCultureFilter] = useState(cultureId || 'all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const country = COUNTRIES.find(c => c.id === countryId);
-  const culture = country?.cultures.find(c => c.id === cultureId);
 
   useEffect(() => {
     const fetchArtists = async () => {
       setLoading(true);
       setError('');
-      const { data, error: err } = await supabase
-        .from('artists')
-        .select('*')
-        .eq('country_id', countryId)
-        .eq('culture_id', cultureId)
-        .order('name', { ascending: true });
+
+      // supabase-js recovers/refreshes a persisted session asynchronously on
+      // client init. Without waiting for it, a query fired immediately on
+      // mount can go out with the old, already-expired access token attached.
+      // Awaiting getSession() ensures that refresh has resolved first.
+      await supabase.auth.getSession();
+
+      const runQuery = () =>
+        supabase
+          .from('artists')
+          .select('*')
+          .eq('country_id', countryId)
+          .order('name', { ascending: true });
+
+      // Show artists from every tribe/culture in this country, not just one.
+      let { data, error: err } = await runQuery();
+
+      // If the access token expired (e.g. tab was idle), refresh once and retry
+      // rather than surfacing an error for what should be a routine refresh.
+      if (err && err.code === 'PGRST303') {
+        const { error: refreshErr } = await supabase.auth.refreshSession();
+        if (!refreshErr) {
+          ({ data, error: err } = await runQuery());
+        }
+      }
 
       if (err) {
         setError('Could not load artists. Please try again.');
@@ -36,22 +55,28 @@ export default function ArtistsPage() {
       setLoading(false);
     };
     fetchArtists();
-  }, [countryId, cultureId]);
+  }, [countryId]);
 
-  // Filter artists when search term changes
+  // Filter artists when search term or culture filter changes
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredArtists(artists);
-    } else {
+    let result = artists;
+
+    if (cultureFilter !== 'all') {
+      result = result.filter(a => a.culture_id === cultureFilter);
+    }
+
+    if (searchTerm.trim()) {
       const lower = searchTerm.toLowerCase();
-      const filtered = artists.filter(a =>
+      result = result.filter(a =>
         a.name.toLowerCase().includes(lower) ||
         (a.tagline && a.tagline.toLowerCase().includes(lower)) ||
-        (a.genre && a.genre.toLowerCase().includes(lower))
+        (a.genre && a.genre.toLowerCase().includes(lower)) ||
+        (a.culture_name && a.culture_name.toLowerCase().includes(lower))
       );
-      setFilteredArtists(filtered);
     }
-  }, [searchTerm, artists]);
+
+    setFilteredArtists(result);
+  }, [searchTerm, cultureFilter, artists]);
 
   if (loading) return (
     <div className="artist-loading-container">
@@ -67,8 +92,17 @@ export default function ArtistsPage() {
   if (artists.length === 0) return (
     <div style={{ padding: '4rem 1rem', maxWidth: '660px', margin: '0 auto', textAlign: 'center' }}>
       <h2 className="explore-card-heading">Artists coming soon</h2>
-      <p className="explore-card-subheading">We're curating {culture?.name} artists right now — check back soon.</p>
+      <p className="explore-card-subheading">We're curating {country?.name || 'this country'}'s artists right now — check back soon.</p>
     </div>
+  );
+
+  // Unique cultures present among the fetched artists, for the filter pills
+  const availableCultures = Array.from(
+    new Map(
+      artists
+        .filter(a => a.culture_id)
+        .map(a => [a.culture_id, { id: a.culture_id, name: a.culture_name || a.culture_id }])
+    ).values()
   );
 
   return (
@@ -78,6 +112,43 @@ export default function ArtistsPage() {
       </button>
       <h2 className="explore-card-heading">Choose an Artist</h2>
       <p className="explore-card-subheading">Select an artist to explore their world — music, film, and VR experience.</p>
+
+      {/* Culture / Tribe filter pills */}
+      {availableCultures.length > 1 && (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <button
+            onClick={() => setCultureFilter('all')}
+            style={{
+              padding: '0.4rem 0.9rem',
+              borderRadius: '50px',
+              border: '1px solid rgba(232,168,76,0.4)',
+              background: cultureFilter === 'all' ? '#e8a84c' : 'rgba(0,0,0,0.4)',
+              color: cultureFilter === 'all' ? '#1a0d06' : '#f5e6d3',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+            }}
+          >
+            All Tribes
+          </button>
+          {availableCultures.map(c => (
+            <button
+              key={c.id}
+              onClick={() => setCultureFilter(c.id)}
+              style={{
+                padding: '0.4rem 0.9rem',
+                borderRadius: '50px',
+                border: '1px solid rgba(232,168,76,0.4)',
+                background: cultureFilter === c.id ? '#e8a84c' : 'rgba(0,0,0,0.4)',
+                color: cultureFilter === c.id ? '#1a0d06' : '#f5e6d3',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Search Bar */}
       <div style={{ marginBottom: '1.5rem' }}>
@@ -114,6 +185,11 @@ export default function ArtistsPage() {
             </div>
             <div className="artist-card-body">
               <div className="artist-name-title">{artist.name}</div>
+              {artist.culture_name && (
+                <div style={{ fontSize: '0.7rem', color: '#e8a84c', opacity: 0.7, marginBottom: '0.2rem' }}>
+                  {artist.culture_name}
+                </div>
+              )}
               {artist.tagline && <div className="artist-tagline-text">{artist.tagline}</div>}
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {artist.has_music && <span className="feature-indicator-pill">🎵 Music</span>}
