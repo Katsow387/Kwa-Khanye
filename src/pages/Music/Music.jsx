@@ -1,19 +1,20 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import './Music.css';
-import musicBgImage from '../../assets/images/Music Back.jpg';   // ← updated image
+import musicBgImage from '../../assets/images/Music Back.jpg';
 
 const DEEZER_SEARCH_URL = '/api/deezer/search?q=';
 
 function Music() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Player state (still needed for the mini player bar)
+  // Player state
   const [currentPlaylist, setCurrentPlaylist] = useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -29,6 +30,15 @@ function Music() {
   const searchTimeout = useRef(null);
   const searchInputRef = useRef(null);
 
+  // ── Read artist param from URL ──
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const artistParam = params.get('artist');
+    if (artistParam) {
+      setSearchQuery(artistParam);
+    }
+  }, [location]);
+
   // Auth check
   useEffect(() => {
     const checkAuth = async () => {
@@ -38,7 +48,7 @@ function Music() {
     checkAuth();
   }, [navigate]);
 
-  // Debounced search
+  // ── Debounced search ──
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     if (!searchQuery.trim()) { setSearchResults([]); return; }
@@ -75,6 +85,7 @@ function Music() {
     return () => clearTimeout(searchTimeout.current);
   }, [searchQuery]);
 
+  // ── Player functions ──
   const generateShuffledIndices = useCallback((playlist) => {
     const indices = playlist.map((_, idx) => idx);
     for (let i = indices.length - 1; i > 0; i--) {
@@ -84,7 +95,6 @@ function Music() {
     return indices;
   }, []);
 
-  // Select track → navigate to NowPlaying page
   const selectTrack = (track) => {
     setCurrentPlaylist(searchResults);
     const idx = searchResults.findIndex(t => t.id === track.id);
@@ -101,7 +111,7 @@ function Music() {
     }
   };
 
-  // Audio event listeners for mini player
+  // ── Audio event listeners ──
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -113,7 +123,7 @@ function Music() {
     };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
-    const handleError = () => { setError('Playback error. The preview might be unavailable.'); setIsPlaying(false); };
+    const handleError = () => { setError('Playback error.'); setIsPlaying(false); };
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
@@ -130,38 +140,40 @@ function Music() {
     };
   }, [repeat, shuffle, currentPlaylist, currentTrackIndex]);
 
-  // Load and play track in mini player
+  // ── Load and play track (with spinning fix) ──
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || currentTrackIndex < 0 || !currentPlaylist.length) return;
     const track = shuffle ? currentPlaylist[shuffledIndices[currentTrackIndex]] : currentPlaylist[currentTrackIndex];
     if (track && track.preview) {
       audio.pause();
+      setIsPlaying(false);                     // stop spinning while loading
       audio.src = track.preview;
       audio.load();
-      if (isPlaying) {
-        audio.play().catch(err => { console.error(err); setError('Cannot play this track.'); setIsPlaying(false); });
-      }
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => { setIsPlaying(false); setError('Cannot play this track.'); });
     } else {
-      setError('No preview available for this track.');
+      setError('No preview available.');
     }
-  }, [currentTrackIndex, currentPlaylist, shuffle, shuffledIndices, isPlaying]);
+  }, [currentTrackIndex, currentPlaylist, shuffle, shuffledIndices]);
 
   const nextTrack = () => {
     if (!currentPlaylist.length) return;
+    setIsPlaying(false);                       // stop spinning before transitioning
     let newIndex = currentTrackIndex + 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex >= len) {
       if (repeat === 'all') newIndex = 0;
-      else { setCurrentTrackIndex(-1); setIsPlaying(false); return; }
+      else { setCurrentTrackIndex(-1); return; }
     }
     setCurrentTrackIndex(newIndex);
-    setIsPlaying(true);
     setLiked(false);
   };
 
   const prevTrack = () => {
     if (!currentPlaylist.length) return;
+    setIsPlaying(false);
     let newIndex = currentTrackIndex - 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex < 0) {
@@ -169,14 +181,19 @@ function Music() {
       else return;
     }
     setCurrentTrackIndex(newIndex);
-    setIsPlaying(true);
     setLiked(false);
   };
 
   const togglePlayPause = () => {
     if (!audioRef.current || currentTrackIndex === -1) return;
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(() => setError('Playback failed.'));
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);                     // stop spinning immediately
+    } else {
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setError('Playback failed.'));
+    }
   };
 
   const handleSeek = (e) => {
@@ -229,6 +246,9 @@ function Music() {
   const currentTrack = getCurrentTrack();
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
+  const params = new URLSearchParams(location.search);
+  const artistFromUrl = params.get('artist');
+
   return (
     <div className="music-page" style={{ backgroundImage: `url(${musicBgImage})` }}>
       <div className="music-overlay" />
@@ -243,9 +263,13 @@ function Music() {
               <span className="eyebrow-dot" />
               Kwa Khanye
             </div>
-            <h1 className="music-title">The Music Kraal</h1>
+            <h1 className="music-title">
+              {artistFromUrl ? `Songs by ${artistFromUrl}` : 'The Music Kraal'}
+            </h1>
             <p className="music-subtitle">
-              Search any song in the world — play previews, shuffle, repeat, and more
+              {artistFromUrl
+                ? `Search within ${artistFromUrl}'s discography or type a new query`
+                : 'Search any song in the world — play previews, shuffle, repeat, and more'}
             </p>
             <div className="music-search-wrap">
               <span className="music-search-icon">
@@ -258,7 +282,7 @@ function Music() {
                 ref={searchInputRef}
                 type="text"
                 className="music-search"
-                placeholder="Search — Burna Boy, Tyla, Kabza De Small…"
+                placeholder={artistFromUrl ? `Search ${artistFromUrl}'s songs…` : "Search — Burna Boy, Tyla, Kabza De Small…"}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -366,7 +390,7 @@ function Music() {
         <audio ref={audioRef} />
       </div>
 
-      {/* Mini bar — tap to open full NowPlaying page */}
+      {/* Mini player bar */}
       {currentTrack && (
         <div
           className={`now-playing-bar${isPlaying ? ' is-playing' : ''}`}

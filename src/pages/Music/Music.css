@@ -822,3 +822,6 @@
   .music-title { font-size: 2rem; }
   .track-thumb { width: 32px; height: 32px; }
 }
+.music-search {
+  border: 3px solid red !important;
+}

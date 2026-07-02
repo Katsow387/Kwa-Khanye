@@ -3,15 +3,15 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 
-// Import pot images for hub cards
+// Pot images for hub cards
 import musicImg from '../assets/images/pot_music.png';
 import homevrImg from '../assets/images/pot_homevr.png';
 import bioscopeImg from '../assets/images/pot_bioscope.png';
 
-// Import Busi's profile image
+// Busi's hero image
 import busiImage from '../assets/images/Busi.jpg';
 
-// --- Import the correct background image ---
+// Background
 import backgroundImage from '../assets/images/Music Back.jpg';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -21,7 +21,6 @@ const S = {
     fontFamily: "'DM Sans', sans-serif",
     color: '#f4d090',
     position: 'relative',
-    // Background image with dark overlay
     backgroundImage: `url(${backgroundImage})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center center',
@@ -154,19 +153,63 @@ const S = {
     background: 'rgba(198,122,52,0.15)',
   },
 
+  // ─── Bio with vertical divider and watermark ──────────────────────────
+  bioWrapper: {
+    position: 'relative',
+    marginBottom: '2.5rem',
+    paddingLeft: '1.5rem',
+    borderLeft: '3px solid #d48f38',
+  },
+  bioQuoteWatermark: {
+    position: 'absolute',
+    top: '-0.5rem',
+    left: '-0.8rem',
+    fontSize: '4rem',
+    color: 'rgba(212, 143, 56, 0.08)',
+    fontFamily: "'Cormorant Garamond', serif",
+    pointerEvents: 'none',
+    userSelect: 'none',
+    lineHeight: 1,
+  },
   bioCard: {
     background: 'rgba(20,10,5,0.7)',
-    border: '1px solid rgba(198,122,52,0.2)',
     borderRadius: '16px',
     padding: '1.5rem',
-    marginBottom: '2.5rem',
     backdropFilter: 'blur(8px)',
     lineHeight: 1.75,
     color: 'rgba(244,208,144,0.75)',
     fontSize: '0.92rem',
+    position: 'relative',
+    zIndex: 1,
   },
 
-  // Pot‑centric hub grid – 3 columns with large pots
+  // ─── Social Connect buttons (gold pill) ──────────────────────────────
+  socialRow: {
+    display: 'flex',
+    gap: '0.75rem',
+    flexWrap: 'wrap',
+    marginBottom: '2rem',
+  },
+  socialBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    background: 'rgba(212, 143, 56, 0.1)',
+    border: '1px solid #d48f38',
+    borderRadius: '50px',
+    padding: '0.4rem 1rem',
+    color: '#f4d090',
+    fontSize: '0.78rem',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    transition: 'all 0.3s ease',
+  },
+  socialBtnHover: {
+    background: '#d48f38',
+    color: '#1a0f0a',
+  },
+
+  // ─── Hub cards (elevated containers) ──────────────────────────────────
   hubGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -176,25 +219,32 @@ const S = {
   },
 
   hubCard: (disabled) => ({
+    background: 'rgba(20, 10, 5, 0.7)',
+    border: '1px solid rgba(212, 143, 56, 0.2)',
+    borderRadius: '16px',
+    padding: '1.5rem 1rem',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '0.5rem',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.4 : 1,
-    transition: 'transform 0.2s, opacity 0.2s',
-    background: 'transparent',
-    border: 'none',
-    padding: '0.5rem',
+    transition: 'all 0.3s ease',
+    backdropFilter: 'blur(4px)',
   }),
+  hubCardHover: {
+    transform: 'translateY(-5px)',
+    borderColor: 'rgba(212, 143, 56, 0.6)',
+    boxShadow: '0 8px 30px rgba(212, 143, 56, 0.15), 0 0 20px rgba(212, 143, 56, 0.05)',
+  },
 
   hubPot: {
     width: '100%',
-    maxWidth: '140px',
+    maxWidth: '120px',
     aspectRatio: '1/1',
     objectFit: 'contain',
-    filter: 'drop-shadow(0 8px 20px rgba(198,122,52,0.2))',
-    transition: 'transform 0.25s, filter 0.25s',
+    filter: 'drop-shadow(0 4px 12px rgba(198,122,52,0.2))',
+    transition: 'transform 0.3s ease',
   },
 
   hubTitle: {
@@ -217,27 +267,6 @@ const S = {
     borderBottom: '1px solid rgba(198,122,52,0.3)',
     paddingBottom: '0.2rem',
     transition: 'color 0.2s, border-color 0.2s',
-  },
-
-  socialRow: {
-    display: 'flex',
-    gap: '0.75rem',
-    flexWrap: 'wrap',
-    marginBottom: '2rem',
-  },
-  socialBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    background: 'rgba(20,10,5,0.7)',
-    border: '1px solid rgba(198,122,52,0.2)',
-    borderRadius: '50px',
-    padding: '0.4rem 0.9rem',
-    color: 'rgba(244,208,144,0.6)',
-    fontSize: '0.78rem',
-    cursor: 'pointer',
-    textDecoration: 'none',
-    transition: 'all 0.2s',
   },
 
   proverbSection: {
@@ -277,7 +306,7 @@ const S = {
   },
 };
 
-// ─── Hub Card ──────────────────────────────────────────────────────────────
+// ─── Hub Card Component ──────────────────────────────────────────────────────
 function HubCard({ icon, title, ctaLabel, onClick, disabled, comingSoon }) {
   const [hovered, setHovered] = useState(false);
 
@@ -285,7 +314,7 @@ function HubCard({ icon, title, ctaLabel, onClick, disabled, comingSoon }) {
     <div
       style={{
         ...S.hubCard(disabled),
-        ...(hovered && !disabled ? { transform: 'scale(1.05)' } : {}),
+        ...(hovered && !disabled ? S.hubCardHover : {}),
       }}
       onClick={!disabled ? onClick : undefined}
       onMouseEnter={() => setHovered(true)}
@@ -298,7 +327,7 @@ function HubCard({ icon, title, ctaLabel, onClick, disabled, comingSoon }) {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main Component ──────────────────────────────────────────────────────────
 export default function ArtistProfile() {
   const { artistId } = useParams();
   const navigate = useNavigate();
@@ -335,7 +364,7 @@ export default function ArtistProfile() {
     fetchArtist();
   }, [artistId]);
 
-  // ── Loading ──
+  // Loading & error states (unchanged)
   if (loading) {
     return (
       <div style={{ ...S.page, ...S.center }}>
@@ -352,7 +381,6 @@ export default function ArtistProfile() {
     );
   }
 
-  // ── Error ──
   if (error || !artist) {
     return (
       <div style={{ ...S.page, ...S.center }}>
@@ -374,12 +402,10 @@ export default function ArtistProfile() {
     );
   }
 
-  // ── Hero image – use Busi.jpg if applicable ──
+  // Hero image
   const heroImage = (artist.name && artist.name.toLowerCase().includes('busi')) ? busiImage : artist.photo_url;
 
-  // ── Hub data ──
-  // Home VR and Bioscope are open for every artist across all tribes —
-  // no longer gated behind a per-artist has_vr / has_bioscope flag.
+  // Hub data
   const hubs = [
     {
       icon: musicImg,
@@ -391,16 +417,16 @@ export default function ArtistProfile() {
     {
       icon: homevrImg,
       title: 'Home VR',
-      disabled: false,
-      comingSoon: false,
-      onClick: () => navigate(artist.vr_route || `/homevr?artist=${encodeURIComponent(artist.name)}`),
+      disabled: !artist.has_vr,
+      comingSoon: !artist.has_vr,
+      onClick: () => navigate(artist.vr_route || '/homevr'),
     },
     {
       icon: bioscopeImg,
       title: 'Bioscope',
-      disabled: false,
-      comingSoon: false,
-      onClick: () => navigate(artist.bioscope_route || `/bioscope?artist=${encodeURIComponent(artist.name)}`),
+      disabled: !artist.has_bioscope,
+      comingSoon: !artist.has_bioscope,
+      onClick: () => navigate(artist.bioscope_route || '/bioscope'),
     },
   ];
 
@@ -446,7 +472,7 @@ export default function ArtistProfile() {
 
       {/* Body */}
       <div style={S.body}>
-        {/* Social links */}
+        {/* Social Connect buttons – gold pill style */}
         {(artist.instagram || artist.spotify_url || artist.youtube_url) && (
           <>
             <div style={S.sectionLabel}>
@@ -455,25 +481,55 @@ export default function ArtistProfile() {
             </div>
             <div style={S.socialRow}>
               {artist.instagram && (
-                <a href={`https://instagram.com/${artist.instagram}`} target="_blank" rel="noopener noreferrer" style={S.socialBtn}
-                  onMouseEnter={e => e.currentTarget.style.color = '#f4d090'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(244,208,144,0.6)'}
+                <a
+                  href={`https://instagram.com/${artist.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={S.socialBtn}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#d48f38';
+                    e.currentTarget.style.color = '#1a0f0a';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(212, 143, 56, 0.1)';
+                    e.currentTarget.style.color = '#f4d090';
+                  }}
                 >
                   📸 @{artist.instagram}
                 </a>
               )}
               {artist.spotify_url && (
-                <a href={artist.spotify_url} target="_blank" rel="noopener noreferrer" style={S.socialBtn}
-                  onMouseEnter={e => e.currentTarget.style.color = '#1DB954'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(244,208,144,0.6)'}
+                <a
+                  href={artist.spotify_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={S.socialBtn}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#d48f38';
+                    e.currentTarget.style.color = '#1a0f0a';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(212, 143, 56, 0.1)';
+                    e.currentTarget.style.color = '#f4d090';
+                  }}
                 >
                   🎧 Spotify
                 </a>
               )}
               {artist.youtube_url && (
-                <a href={artist.youtube_url} target="_blank" rel="noopener noreferrer" style={S.socialBtn}
-                  onMouseEnter={e => e.currentTarget.style.color = '#FF0000'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(244,208,144,0.6)'}
+                <a
+                  href={artist.youtube_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={S.socialBtn}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#d48f38';
+                    e.currentTarget.style.color = '#1a0f0a';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(212, 143, 56, 0.1)';
+                    e.currentTarget.style.color = '#f4d090';
+                  }}
                 >
                   ▶ YouTube
                 </a>
@@ -482,18 +538,21 @@ export default function ArtistProfile() {
           </>
         )}
 
-        {/* Bio */}
+        {/* About section – with vertical divider & watermark quote */}
         {artist.bio && (
           <>
             <div style={S.sectionLabel}>
               <span>About</span>
               <div style={S.sectionLabelLine} />
             </div>
-            <div style={S.bioCard}>{artist.bio}</div>
+            <div style={S.bioWrapper}>
+              <span style={S.bioQuoteWatermark}>“</span>
+              <div style={S.bioCard}>{artist.bio}</div>
+            </div>
           </>
         )}
 
-        {/* Hub – 3 large pots */}
+        {/* Explore the World – elevated hub cards */}
         <div style={S.sectionLabel}>
           <span>Explore {artist.name}'s World</span>
           <div style={S.sectionLabelLine} />

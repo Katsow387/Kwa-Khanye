@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './NowPlaying.css';   // ← CRITICAL: import the correct CSS
+import './NowPlaying.css';
 import calabashImage from '../../assets/images/music_calabash.png';
 import nowPlayingBg from '../../assets/images/NowPlay.jpg';
 
@@ -83,19 +83,19 @@ function NowPlaying() {
     };
   }, [repeat, shuffle, currentPlaylist, currentTrackIndex, shuffledIndices]);
 
-  // Load and play track
+  // Load and play track (with spinning fix)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || currentTrackIndex < 0 || !currentTrack) return;
 
     if (currentTrack.preview) {
       audio.pause();
+      setIsPlaying(false);                     // stop spinning while loading
       audio.src = currentTrack.preview;
       audio.load();
-      audio.play().catch(err => {
-        console.error(err);
-        setIsPlaying(false);
-      });
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => { setIsPlaying(false); });
     }
   }, [currentTrackIndex, currentTrack]);
 
@@ -105,15 +105,12 @@ function NowPlaying() {
 
   const nextTrack = () => {
     if (!currentPlaylist.length) return;
+    setIsPlaying(false);                       // stop spinning before transitioning
     let newIndex = currentTrackIndex + 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex >= len) {
       if (repeat === 'all') newIndex = 0;
-      else {
-        setCurrentTrackIndex(-1);
-        setIsPlaying(false);
-        return;
-      }
+      else { setCurrentTrackIndex(-1); return; }
     }
     setCurrentTrackIndex(newIndex);
     setLiked(false);
@@ -121,6 +118,7 @@ function NowPlaying() {
 
   const prevTrack = () => {
     if (!currentPlaylist.length) return;
+    setIsPlaying(false);
     let newIndex = currentTrackIndex - 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex < 0) {
@@ -133,8 +131,14 @@ function NowPlaying() {
 
   const togglePlayPause = () => {
     if (!audioRef.current || currentTrackIndex === -1) return;
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(console.error);
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);                     // stop spinning immediately
+    } else {
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(console.error);
+    }
   };
 
   const handleSeek = (e) => {
@@ -214,7 +218,7 @@ function NowPlaying() {
         </div>
       </div>
 
-      {/* Calabash disc */}
+      {/* Calabash disc – spinning controlled by isPlaying */}
       <div className="np-disc-area">
         <div className={`np-glow-ring${isPlaying ? ' spinning' : ''}`} />
         <div className={`np-gold-ring${isPlaying ? ' spinning' : ''}`}>
