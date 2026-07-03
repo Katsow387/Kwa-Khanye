@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+﻿import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import './Music.css';
@@ -25,17 +25,32 @@ function Music() {
   const [repeat, setRepeat] = useState('off');
   const [shuffledIndices, setShuffledIndices] = useState([]);
   const [liked, setLiked] = useState(false);
+  
+  // State for all artists mode
+  const [allArtistsMode, setAllArtistsMode] = useState(false);
+  const [modeType, setModeType] = useState(''); // 'videos' or 'albums'
 
   const audioRef = useRef(null);
   const searchTimeout = useRef(null);
   const searchInputRef = useRef(null);
 
-  // ── Read artist param from URL ──
+  // ── Read artist param and mode from URL ──
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const artistParam = params.get('artist');
-    if (artistParam) {
+    const modeParam = params.get('mode');
+    
+    // Check if we're in all-artists mode
+    if (modeParam === 'all-videos' || modeParam === 'all-albums') {
+      setAllArtistsMode(true);
+      setModeType(modeParam === 'all-videos' ? 'videos' : 'albums');
+      setSearchQuery(modeParam === 'all-videos' ? 'All Music Videos' : 'All Albums');
+      fetchAllArtistsContent(modeParam);
+    } else if (artistParam) {
+      setAllArtistsMode(false);
       setSearchQuery(artistParam);
+    } else {
+      setAllArtistsMode(false);
     }
   }, [location]);
 
@@ -48,8 +63,136 @@ function Music() {
     checkAuth();
   }, [navigate]);
 
+  // ── Fetch all artists content for videos or albums ──
+  const fetchAllArtistsContent = async (mode) => {
+    setLoading(true);
+    setError('');
+    try {
+      let tracks = [];
+      
+      if (mode === 'all-videos') {
+        // Fetch music videos from your table
+        const { data: videos, error: videosError } = await supabase
+          .from('music_videos')
+          .select(`
+            *,
+            artists (
+              id,
+              name
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (videosError) {
+          console.error('Videos fetch error:', videosError);
+          throw videosError;
+        }
+        
+        // Transform to match track format
+        if (videos && videos.length > 0) {
+          tracks = videos.map(video => ({
+            id: video.id,
+            title: video.title || 'Untitled Video',
+            artist: video.artists?.name || 'Unknown Artist',
+            artist_id: video.artist_id,
+            album: 'Music Video',
+            duration: video.duration || 180,
+            preview: video.video_url || '',
+            cover_small: video.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=' + encodeURIComponent(video.title || 'Video'),
+            cover_medium: video.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=' + encodeURIComponent(video.title || 'Video'),
+            isVideo: true,
+            videoUrl: video.video_url,
+            views: video.views || 0,
+            featured: video.featured || false,
+            release_date: video.release_date,
+            description: video.description,
+          }));
+        }
+      } else if (mode === 'all-albums') {
+        // Try to get from bioscope_content as albums fallback
+        const { data: bioscopeData, error: bioscopeError } = await supabase
+          .from('bioscope_content')
+          .select(`
+            *,
+            artists (
+              id,
+              name
+            )
+          `)
+          .eq('content_type', 'album')
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (!bioscopeError && bioscopeData && bioscopeData.length > 0) {
+          tracks = bioscopeData.map(item => ({
+            id: item.id,
+            title: item.title || 'Untitled Album',
+            artist: item.artists?.name || item.artist_name || 'Unknown Artist',
+            artist_id: item.artist_id,
+            album: item.title || 'Album',
+            duration: 0,
+            preview: item.preview_url || '',
+            cover_small: item.cover_url || item.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=Album',
+            cover_medium: item.cover_url || item.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=Album',
+            isAlbum: true,
+            albumId: item.id,
+            releaseYear: item.release_year || null,
+          }));
+        } else {
+          // Try to get albums from artists as fallback
+          const { data: artistsData, error: artistsError } = await supabase
+            .from('artists')
+            .select('id, name, profile_image')
+            .order('name')
+            .limit(20);
+
+          if (!artistsError && artistsData && artistsData.length > 0) {
+            tracks = artistsData.map(artist => ({
+              id: `artist-album-${artist.id}`,
+              title: `${artist.name} - Album Collection`,
+              artist: artist.name,
+              artist_id: artist.id,
+              album: 'Album Collection',
+              duration: 0,
+              preview: '',
+              cover_small: artist.profile_image || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=' + encodeURIComponent(artist.name),
+              cover_medium: artist.profile_image || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=' + encodeURIComponent(artist.name),
+              isAlbum: true,
+              albumId: `album-${artist.id}`,
+              releaseYear: null,
+              isPlaceholder: true,
+            }));
+          }
+        }
+      }
+
+      setSearchResults(tracks);
+      if (tracks.length === 0) {
+        setError(`No ${mode === 'all-videos' ? 'music videos' : 'albums'} found from any artists.`);
+      }
+    } catch (err) {
+      console.error('Error fetching all artists content:', err);
+      let errorMessage = 'Failed to load content. Please try again.';
+      if (err.message) {
+        if (err.message.includes('permission denied')) {
+          errorMessage = 'You do not have permission to view this content.';
+        } else if (err.message.includes('does not exist')) {
+          errorMessage = 'The content table is not set up yet. Please check back soon!';
+        }
+      }
+      setError(errorMessage);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ── Debounced search ──
   useEffect(() => {
+    // Don't run search if we're in all-artists mode
+    if (allArtistsMode) return;
+    
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     if (!searchQuery.trim()) { setSearchResults([]); return; }
     searchTimeout.current = setTimeout(async () => {
@@ -68,6 +211,7 @@ function Music() {
             preview: track.preview,
             cover_small: track.album.cover_small,
             cover_medium: track.album.cover_medium,
+            isVideo: false,
           }));
           setSearchResults(tracks);
         } else {
@@ -83,7 +227,7 @@ function Music() {
       }
     }, 500);
     return () => clearTimeout(searchTimeout.current);
-  }, [searchQuery]);
+  }, [searchQuery, allArtistsMode]);
 
   // ── Player functions ──
   const generateShuffledIndices = useCallback((playlist) => {
@@ -100,6 +244,29 @@ function Music() {
     const idx = searchResults.findIndex(t => t.id === track.id);
     if (idx !== -1) {
       if (audioRef.current) audioRef.current.pause();
+      
+      // If it's a video, navigate to video player
+      if (track.isVideo && track.videoUrl) {
+        navigate('/video-player', {
+          state: {
+            videoUrl: track.videoUrl,
+            title: track.title,
+            artist: track.artist,
+            description: track.description,
+            views: track.views,
+            release_date: track.release_date,
+          },
+        });
+        return;
+      }
+      
+      // If it's an album, navigate to album view
+      if (track.isAlbum && track.albumId) {
+        navigate(`/album/${track.albumId}`);
+        return;
+      }
+      
+      // Regular track - go to now playing
       navigate('/now-playing', {
         state: {
           playlist: searchResults,
@@ -153,10 +320,15 @@ function Music() {
       audio.play()
         .then(() => setIsPlaying(true))
         .catch(() => { setIsPlaying(false); setError('Cannot play this track.'); });
+    } else if (track && track.isVideo && track.videoUrl) {
+      // For videos, navigate to video player (handled in selectTrack)
+      // This is a fallback
+    } else if (track && track.isAlbum) {
+      // For albums, navigate to album view (handled in selectTrack)
     } else {
       setError('No preview available.');
     }
-  }, [currentTrackIndex, currentPlaylist, shuffle, shuffledIndices]);
+  }, [currentTrackIndex, currentPlaylist, shuffle, shuffledIndices, navigate]);
 
   const nextTrack = () => {
     if (!currentPlaylist.length) return;
@@ -248,6 +420,34 @@ function Music() {
 
   const params = new URLSearchParams(location.search);
   const artistFromUrl = params.get('artist');
+  const modeFromUrl = params.get('mode');
+
+  // Determine header text based on mode
+  const getHeaderText = () => {
+    if (modeFromUrl === 'all-videos') return 'All Music Videos';
+    if (modeFromUrl === 'all-albums') return 'All Albums';
+    if (artistFromUrl) return `Songs by ${artistFromUrl}`;
+    return 'The Music Kraal';
+  };
+
+  const getSubtitleText = () => {
+    if (modeFromUrl === 'all-videos') return 'Music videos from all artists across all tribes';
+    if (modeFromUrl === 'all-albums') return 'Albums from all artists across all tribes';
+    if (artistFromUrl) return `Search within ${artistFromUrl}'s discography or type a new query`;
+    return 'Search any song in the world — play previews, shuffle, repeat, and more';
+  };
+
+  const getPlaceholderText = () => {
+    if (modeFromUrl === 'all-videos') return 'Search within all music videos...';
+    if (modeFromUrl === 'all-albums') return 'Search within all albums...';
+    if (artistFromUrl) return `Search ${artistFromUrl}'s songs…`;
+    return 'Search — Burna Boy, Tyla, Kabza De Small…';
+  };
+
+  // Check if track is playable (has preview)
+  const isTrackPlayable = (track) => {
+    return track.preview && track.preview.length > 0;
+  };
 
   return (
     <div className="music-page" style={{ backgroundImage: `url(${musicBgImage})` }}>
@@ -264,12 +464,10 @@ function Music() {
               Kwa Khanye
             </div>
             <h1 className="music-title">
-              {artistFromUrl ? `Songs by ${artistFromUrl}` : 'The Music Kraal'}
+              {getHeaderText()}
             </h1>
             <p className="music-subtitle">
-              {artistFromUrl
-                ? `Search within ${artistFromUrl}'s discography or type a new query`
-                : 'Search any song in the world — play previews, shuffle, repeat, and more'}
+              {getSubtitleText()}
             </p>
             <div className="music-search-wrap">
               <span className="music-search-icon">
@@ -282,12 +480,36 @@ function Music() {
                 ref={searchInputRef}
                 type="text"
                 className="music-search"
-                placeholder={artistFromUrl ? `Search ${artistFromUrl}'s songs…` : "Search — Burna Boy, Tyla, Kabza De Small…"}
+                placeholder={getPlaceholderText()}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (allArtistsMode) {
+                    // Exit all-artists mode when user types
+                    setAllArtistsMode(false);
+                    setModeType('');
+                  }
+                }}
               />
-              {searchQuery && (
+              {searchQuery && !allArtistsMode && (
                 <button className="search-clear" onClick={() => setSearchQuery('')} aria-label="Clear search">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+              {allArtistsMode && (
+                <button 
+                  className="search-clear" 
+                  onClick={() => {
+                    setAllArtistsMode(false);
+                    setModeType('');
+                    setSearchQuery('');
+                    setSearchResults([]);
+                    navigate('/music');
+                  }} 
+                  aria-label="Clear search"
+                >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -323,7 +545,7 @@ function Music() {
               </div>
             )}
 
-            {searchResults.length === 0 && searchQuery.trim() === '' && (
+            {searchResults.length === 0 && searchQuery.trim() === '' && !allArtistsMode && (
               <div className="welcome-state">
                 <div className="welcome-grid">
                   {['Afrobeats', 'Amapiano', 'Afro Soul', 'Hip Hop', 'R&B', 'Gospel'].map(genre => (
@@ -338,27 +560,43 @@ function Music() {
             {searchResults.length > 0 && (
               <div className="tracklist-body">
                 <div className="tracklist-meta">
-                  <span className="tracklist-count">{searchResults.length} tracks</span>
+                  <span className="tracklist-count">
+                    {searchResults.length} {modeType === 'videos' ? 'videos' : modeType === 'albums' ? 'albums' : 'tracks'}
+                  </span>
+                  {allArtistsMode && (
+                    <span className="tracklist-mode-badge">
+                      {modeType === 'videos' ? '🎬 All Music Videos' : '💿 All Albums'}
+                    </span>
+                  )}
                 </div>
                 <div className="tracklist-header">
                   <span className="th-num">#</span>
                   <span className="th-title">Title</span>
                   <span className="th-artist">Artist</span>
-                  <span className="th-album">Album</span>
+                  <span className="th-album">{modeType === 'albums' ? 'Release Year' : 'Album'}</span>
                   <span className="th-dur">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                    </svg>
+                    {modeType === 'videos' ? '👁️' : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                      </svg>
+                    )}
                   </span>
                 </div>
                 <div className="tracklist-rows">
                   {searchResults.map((track, idx) => {
                     const isActive = currentTrack && currentTrack.id === track.id;
+                    const isPlayable = isTrackPlayable(track);
                     return (
                       <div
-                        key={track.id}
-                        className={`track-item${isActive ? ' active' : ''}`}
-                        onClick={() => selectTrack(track)}
+                        key={track.id || idx}
+                        className={`track-item${isActive ? ' active' : ''}${!isPlayable && !track.isVideo && !track.isAlbum ? ' unplayable' : ''}`}
+                        onClick={() => {
+                          if (isPlayable || track.isVideo || track.isAlbum) {
+                            selectTrack(track);
+                          } else {
+                            setError('This content is not available for preview.');
+                          }
+                        }}
                       >
                         <div className="track-num">
                           {isActive
@@ -373,11 +611,22 @@ function Music() {
                         </div>
                         <div className="track-info-cell">
                           {track.cover_small && <img className="track-thumb" src={track.cover_small} alt="" />}
-                          <span className="track-title">{track.title}</span>
+                          <span className="track-title">
+                            {track.title}
+                            {track.isVideo && <span className="track-badge video">📹</span>}
+                            {track.isAlbum && <span className="track-badge album">💿</span>}
+                            {track.featured && <span className="track-badge featured">⭐</span>}
+                          </span>
                         </div>
                         <div className="track-artist-cell">{track.artist}</div>
-                        <div className="track-album-cell">{track.album}</div>
-                        <div className="track-dur-cell">{formatTime(track.duration)}</div>
+                        <div className="track-album-cell">
+                          {modeType === 'albums' ? (track.releaseYear || '—') : track.album}
+                        </div>
+                        <div className="track-dur-cell">
+                          {modeType === 'albums' ? 'Album' : 
+                           modeType === 'videos' ? (track.views ? `${(track.views / 1000).toFixed(1)}K` : '—') : 
+                           formatTime(track.duration)}
+                        </div>
                       </div>
                     );
                   })}

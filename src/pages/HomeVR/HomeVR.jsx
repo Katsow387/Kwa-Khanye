@@ -41,9 +41,11 @@ export default function HomeVR() {
       // If artistName is provided, find the artist first
       let artistId = null;
       if (artistName) {
+        // No has_vr gate — every artist, from every tribe, can be browsed
+        // here, the same way Music works for any artist searched.
         const { data: artistData, error: artistError } = await supabase
           .from('artists')
-          .select('id, name, has_vr')
+          .select('id, name')
           .ilike('name', `%${artistName}%`)
           .maybeSingle();
 
@@ -56,12 +58,6 @@ export default function HomeVR() {
 
         if (!artistData) {
           setError(`Artist "${artistName}" not found`);
-          setLoading(false);
-          return;
-        }
-
-        if (!artistData.has_vr) {
-          setError(`${artistData.name} doesn't have VR content available yet`);
           setLoading(false);
           return;
         }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
 const S = {
@@ -214,34 +214,155 @@ const S = {
   },
 };
 
-const PRODUCTS = [
-  { id:1, title:'Ubuntu T-Shirt', category:'Apparel', price:'R 450', emoji:'👕', bg:'linear-gradient(135deg,#0a1a2a,#153050)', inStock:true,  badge:'Bestseller', desc:'Premium heavyweight cotton tee with Ubuntu philosophy print. Available in S–XXL.' },
-  { id:2, title:'Kraal Hoodie',   category:'Apparel', price:'R 850', emoji:'🧥', bg:'linear-gradient(135deg,#1a0a05,#2a1508)', inStock:true,  badge:'New',        desc:'Warm fleece-lined hoodie embroidered with the Kwa Khanye kraal symbol.' },
-  { id:3, title:'Beadwork Cap',   category:'Accessories', price:'R 280', emoji:'🧢', bg:'linear-gradient(135deg,#0a0a1a,#15152a)', inStock:true,  badge:'',           desc:'Structured cap with traditional Zulu beadwork pattern stitching.' },
-  { id:4, title:'Culture Tote',   category:'Accessories', price:'R 220', emoji:'👜', bg:'linear-gradient(135deg,#1a1a0a,#2a2a15)', inStock:false, badge:'',           desc:'Heavy-duty canvas tote printed with African proverbs.' },
-  { id:5, title:'Khanye Mug',     category:'Lifestyle',   price:'R 180', emoji:'☕', bg:'linear-gradient(135deg,#1a0a1a,#2a1525)', inStock:true,  badge:'',           desc:'Double-walled ceramic mug with the Kwa Khanye fire emblem.' },
-  { id:6, title:'Art Print — Ancestors', category:'Art', price:'R 650', emoji:'🎨', bg:'linear-gradient(135deg,#0a1a0a,#153015)', inStock:true,  badge:'Limited',    desc:'A3 fine-art print on acid-free paper. Signed and numbered edition of 50.' },
-];
-
-const FILTERS = ['All', 'Apparel', 'Accessories', 'Lifestyle', 'Art'];
+const FILTERS = ['All', 'Apparel', 'Accessories', 'Lifestyle', 'Art', 'Music'];
 
 export default function OnlineStore() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [products, setProducts] = useState([]);
   const [filter, setFilter] = useState('All');
   const [cart, setCart] = useState([]);
   const [selected, setSelected] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [artist, setArtist] = useState(null);
+
+  const searchParams = new URLSearchParams(location.search);
+  const artistName = searchParams.get('artist');
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndFetch = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) navigate('/login', { replace: true });
+      if (!session) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      await fetchProducts();
     };
-    checkAuth();
-  }, [navigate]);
+    checkAuthAndFetch();
+  }, [navigate, artistName]);
 
-  const filtered = filter === 'All' ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
-  const addToCart = (e, id) => { e.stopPropagation(); setCart(c => c.includes(id) ? c : [...c, id]); };
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      let artistId = null;
+      if (artistName) {
+        const { data: artistData, error: artistError } = await supabase
+          .from('artists')
+          .select('id, name')
+          .ilike('name', `%${artistName}%`)
+          .maybeSingle();
+
+        if (artistError || !artistData) {
+          setError(`Artist "${artistName}" not found`);
+          setLoading(false);
+          return;
+        }
+
+        artistId = artistData.id;
+        setArtist(artistData);
+      }
+
+      let query = supabase.from('store_products').select('*');
+      if (artistId) {
+        query = query.eq('artist_id', artistId);
+      }
+
+      const { data, error: fetchError } = await query
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        if (fetchError.code === '42P01') {
+          setError('Store is being set up. Check back soon!');
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+        throw fetchError;
+      }
+
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = filter === 'All' ? products : products.filter(p => p.category === filter);
+  
+  const addToCart = (e, id) => { 
+    e.stopPropagation(); 
+    const product = products.find(p => p.id === id);
+    if (product && product.in_stock) {
+      setCart(c => c.includes(id) ? c : [...c, id]);
+    }
+  };
+
+  // Get emoji for category
+  const getCategoryEmoji = (category) => {
+    const emojis = {
+      'Apparel': '👕',
+      'Accessories': '🧢',
+      'Lifestyle': '☕',
+      'Art': '🎨',
+      'Music': '💿',
+    };
+    return emojis[category] || '🛍️';
+  };
+
+  // Get gradient for card
+  const getGradient = (id) => {
+    const gradients = [
+      'linear-gradient(135deg,#0a1a2a,#153050)',
+      'linear-gradient(135deg,#1a0a05,#2a1508)',
+      'linear-gradient(135deg,#0a0a1a,#15152a)',
+      'linear-gradient(135deg,#1a1a0a,#2a2a15)',
+      'linear-gradient(135deg,#1a0a1a,#2a1525)',
+      'linear-gradient(135deg,#0a1a0a,#153015)',
+    ];
+    return gradients[id % gradients.length] || 'linear-gradient(135deg,#1a0d06,#2a1508)';
+  };
+
+  if (loading) {
+    return (
+      <div style={S.page}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{
+                width: 10, height: 10, borderRadius: '50%', background: '#c67a34',
+                animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+              }} />
+            ))}
+          </div>
+          <p style={{ color: 'rgba(244,208,144,0.6)' }}>Loading store...</p>
+          <style>{`@keyframes pulse{0%,80%,100%{transform:scale(0.6);opacity:0.3}40%{transform:scale(1);opacity:1}}`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={S.page}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1.5rem', padding: '2rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', opacity: 0.4 }}>🛍️</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", color: '#f4d090', fontSize: '1.5rem' }}>{error}</h2>
+          <button onClick={() => navigate('/homevr')} style={{
+            background: 'linear-gradient(135deg, #8B6914, #c67a34)',
+            border: 'none', borderRadius: '8px', padding: '0.75rem 1.5rem',
+            color: '#fff', fontFamily: "'DM Sans', sans-serif",
+            fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
+          }}>← Back to HomeVR</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>
@@ -255,12 +376,17 @@ export default function OnlineStore() {
           <h1 style={S.h1}>The Kraal Market</h1>
           <p style={S.subtitle}>
             Wear the culture, carry the spirit — authentic Kwa Khanye
-            merchandise crafted with pride.
+            {artist ? ` merchandise curated by ${artist.name}` : ' merchandise crafted with pride.'}
           </p>
           <div style={S.statsRow}>
-            {[['32', 'Products'], ['Free', 'Shipping R1000+'], ['ZAR', 'Currency'], ['7d', 'Returns']].map(([n, l]) => (
+            {[
+              [filtered.length, 'Products'],
+              ['Free', 'Shipping R1000+'],
+              [artist ? 'ZAR' : 'ZAR', 'Currency'],
+              ['7d', 'Returns']
+            ].map(([n, l]) => (
               <div key={l} style={S.statBox}>
-                <span style={S.statNum}>{n}</span>
+                <span style={S.statNum}>{typeof n === 'number' ? n : n}</span>
                 <span style={S.statLabel}>{l}</span>
               </div>
             ))}
@@ -270,6 +396,26 @@ export default function OnlineStore() {
 
       {/* ══ CONTENT — below the header ══ */}
       <div style={S.body}>
+
+        {/* Back button if artist is specified */}
+        {artist && (
+          <button 
+            onClick={() => navigate('/homevr')}
+            style={{
+              background: 'rgba(198,122,52,0.2)',
+              border: '1px solid rgba(198,122,52,0.3)',
+              borderRadius: '8px',
+              padding: '0.4rem 1rem',
+              color: '#f4d090',
+              cursor: 'pointer',
+              marginBottom: '1rem',
+              fontSize: '0.8rem',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          >
+            ← Back to HomeVR
+          </button>
+        )}
 
         {/* Cart + filters row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
@@ -287,41 +433,59 @@ export default function OnlineStore() {
         </div>
 
         {/* Product Grid */}
-        <div style={S.grid}>
-          {filtered.map(p => (
-            <div
-              key={p.id}
-              style={S.card(hovered === p.id)}
-              onMouseEnter={() => setHovered(p.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => setSelected(p)}
-            >
-              <div style={S.cardThumb(p.bg)}>
-                <span>{p.emoji}</span>
-                {p.badge && <span style={S.badge}>{p.badge}</span>}
-                <span style={S.inStockDot(p.inStock)}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.inStock ? '#6dbf8a' : '#e05252', display: 'inline-block' }} />
-                  {p.inStock ? 'In Stock' : 'Sold Out'}
-                </span>
-              </div>
-              <div style={S.cardBody}>
-                <span style={S.cardCategory}>{p.category}</span>
-                <h3 style={S.cardTitle}>{p.title}</h3>
-                <p style={S.cardDesc}>{p.desc}</p>
-                <div style={S.cardFooter}>
-                  <span style={S.price}>{p.price}</span>
-                  <button
-                    style={S.addBtn(cart.includes(p.id))}
-                    onClick={e => addToCart(e, p.id)}
-                    disabled={!p.inStock}
-                  >
-                    {cart.includes(p.id) ? '✓ Added' : p.inStock ? 'Add to Cart' : 'Sold Out'}
-                  </button>
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0', color: 'rgba(244,208,144,0.4)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛍️</div>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.2rem' }}>
+              {artist ? `${artist.name} doesn't have any products yet` : 'No products found in this category'}
+            </p>
+          </div>
+        ) : (
+          <div style={S.grid}>
+            {filtered.map(p => {
+              const bgGradient = p.image_url ? `url(${p.image_url})` : getGradient(p.id);
+              const isImage = p.image_url ? true : false;
+              
+              return (
+                <div
+                  key={p.id}
+                  style={S.card(hovered === p.id)}
+                  onMouseEnter={() => setHovered(p.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => setSelected(p)}
+                >
+                  <div style={{
+                    ...S.cardThumb(bgGradient),
+                    backgroundSize: isImage ? 'cover' : 'cover',
+                    backgroundPosition: 'center',
+                  }}>
+                    {!p.image_url && <span>{getCategoryEmoji(p.category)}</span>}
+                    {p.badge && <span style={S.badge}>{p.badge}</span>}
+                    <span style={S.inStockDot(p.in_stock)}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.in_stock ? '#6dbf8a' : '#e05252', display: 'inline-block' }} />
+                      {p.in_stock ? 'In Stock' : 'Sold Out'}
+                    </span>
+                  </div>
+                  <div style={S.cardBody}>
+                    <span style={S.cardCategory}>{p.category}</span>
+                    <h3 style={S.cardTitle}>{p.title}</h3>
+                    <p style={S.cardDesc}>{p.description}</p>
+                    <div style={S.cardFooter}>
+                      <span style={S.price}>{p.currency || 'ZAR'} {p.price}</span>
+                      <button
+                        style={S.addBtn(cart.includes(p.id))}
+                        onClick={e => addToCart(e, p.id)}
+                        disabled={!p.in_stock}
+                      >
+                        {cart.includes(p.id) ? '✓ Added' : p.in_stock ? 'Add to Cart' : 'Sold Out'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ══ MODAL ══ */}
@@ -329,17 +493,29 @@ export default function OnlineStore() {
         <div style={S.overlay} onClick={() => setSelected(null)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <button style={S.closeBtn} onClick={() => setSelected(null)}>✕</button>
-            <div style={{ ...S.modalHero, background: selected.bg }}>{selected.emoji}</div>
+            <div style={{
+              ...S.modalHero,
+              background: selected.image_url ? `url(${selected.image_url})` : getGradient(selected.id),
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}>
+              {!selected.image_url && <span style={{ opacity: 0.4 }}>{getCategoryEmoji(selected.category)}</span>}
+            </div>
             <div style={S.modalBody}>
               <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c67a34' }}>{selected.category}</span>
               <h2 style={S.modalTitle}>{selected.title}</h2>
-              <p style={S.modalDesc}>{selected.desc}</p>
-              <span style={S.modalPrice}>{selected.price}</span>
+              <p style={S.modalDesc}>{selected.description}</p>
+              <span style={S.modalPrice}>{selected.currency || 'ZAR'} {selected.price}</span>
               <button
-                style={{ ...S.modalAction, opacity: selected.inStock ? 1 : 0.5, cursor: selected.inStock ? 'pointer' : 'not-allowed' }}
-                onClick={() => { if (selected.inStock) { setCart(c => c.includes(selected.id) ? c : [...c, selected.id]); setSelected(null); }}}
+                style={{ ...S.modalAction, opacity: selected.in_stock ? 1 : 0.5, cursor: selected.in_stock ? 'pointer' : 'not-allowed' }}
+                onClick={() => { 
+                  if (selected.in_stock) { 
+                    setCart(c => c.includes(selected.id) ? c : [...c, selected.id]); 
+                    setSelected(null); 
+                  }
+                }}
               >
-                {selected.inStock ? '🛒  Add to Cart' : 'Currently Sold Out'}
+                {selected.in_stock ? '🛒  Add to Cart' : 'Currently Sold Out'}
               </button>
             </div>
           </div>

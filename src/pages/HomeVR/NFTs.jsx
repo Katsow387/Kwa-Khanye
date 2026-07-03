@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
 const S = {
@@ -278,32 +278,146 @@ const S = {
   },
 };
 
-const NFTS = [
-  { id:1, title:'Ubuntu Spirit', artist:'Kwa Khanye Studio', category:'Digital Art', price:'0.45 ETH', edition:'1 of 10', emoji:'🌍', bg:'linear-gradient(135deg,#1a2a0a,#2d4a15)', desc:'A celebration of African communal spirit rendered in vivid digital brushwork.' },
-  { id:2, title:'The Kraal at Dawn', artist:'Nomvula Art', category:'Photography', price:'0.28 ETH', edition:'1 of 25', emoji:'🌅', bg:'linear-gradient(135deg,#2a1505,#4a2510)', desc:'Golden hour over a traditional Zulu homestead — captured and tokenised.' },
-  { id:3, title:'Ancestors\' Flame', artist:'Kwa Khanye Studio', category:'Animation', price:'1.2 ETH', edition:'1 of 3', emoji:'🔥', bg:'linear-gradient(135deg,#2a0a05,#4a1808)', desc:'A living flame animation honouring those who came before us.' },
-  { id:4, title:'Beadwork Genesis', artist:'iSiqalo Collective', category:'Generative', price:'0.15 ETH', edition:'Open', emoji:'📿', bg:'linear-gradient(135deg,#0a1a2a,#153050)', desc:'Algorithmically generated Zulu beadwork patterns, each one unique.' },
-  { id:5, title:'Ndlovu Rising', artist:'Thabo M.', category:'3D Art', price:'0.65 ETH', edition:'1 of 5', emoji:'🐘', bg:'linear-gradient(135deg,#1a1a0a,#2a2a15)', desc:'A majestic 3D sculpt of the elephant — symbol of wisdom and power.' },
-  { id:6, title:'Isangoma Vision', artist:'Kwa Khanye Studio', category:'Digital Art', price:'0.9 ETH', edition:'1 of 7', emoji:'👁️', bg:'linear-gradient(135deg,#1a0a2a,#2a1545)', desc:'The third eye of the healer — mystical and mesmerising digital art.' },
-];
-
-const FILTERS = ['All', 'Digital Art', 'Photography', 'Animation', 'Generative', '3D Art'];
+const FILTERS = ['All', 'Digital Art', 'Animation', '3D Art', 'Generative', 'Collection'];
 
 export default function NFTs() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [nfts, setNfts] = useState([]);
   const [filter, setFilter] = useState('All');
   const [selected, setSelected] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [artist, setArtist] = useState(null);
+
+  const searchParams = new URLSearchParams(location.search);
+  const artistName = searchParams.get('artist');
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndFetch = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) navigate('/login', { replace: true });
+      if (!session) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      await fetchNFTs();
     };
-    checkAuth();
-  }, [navigate]);
+    checkAuthAndFetch();
+  }, [navigate, artistName]);
 
-  const filtered = filter === 'All' ? NFTS : NFTS.filter(n => n.category === filter);
+  const fetchNFTs = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      let artistId = null;
+      if (artistName) {
+        const { data: artistData, error: artistError } = await supabase
+          .from('artists')
+          .select('id, name')
+          .ilike('name', `%${artistName}%`)
+          .maybeSingle();
+
+        if (artistError || !artistData) {
+          setError(`Artist "${artistName}" not found`);
+          setLoading(false);
+          return;
+        }
+
+        artistId = artistData.id;
+        setArtist(artistData);
+      }
+
+      let query = supabase.from('nfts').select('*');
+      if (artistId) {
+        query = query.eq('artist_id', artistId);
+      }
+
+      const { data, error: fetchError } = await query
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        if (fetchError.code === '42P01') {
+          setError('NFT gallery is being set up. Check back soon!');
+          setNfts([]);
+          setLoading(false);
+          return;
+        }
+        throw fetchError;
+      }
+
+      setNfts(data || []);
+    } catch (err) {
+      console.error('Error fetching NFTs:', err);
+      setError('Failed to load NFTs. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = filter === 'All' ? nfts : nfts.filter(n => n.category === filter);
+
+  // Generate gradient backgrounds for cards without images
+  const getGradient = (id) => {
+    const gradients = [
+      'linear-gradient(135deg,#1a2a0a,#2d4a15)',
+      'linear-gradient(135deg,#2a1505,#4a2510)',
+      'linear-gradient(135deg,#2a0a05,#4a1808)',
+      'linear-gradient(135deg,#0a1a2a,#153050)',
+      'linear-gradient(135deg,#1a1a0a,#2a2a15)',
+      'linear-gradient(135deg,#1a0a2a,#2a1545)',
+    ];
+    return gradients[id % gradients.length] || 'linear-gradient(135deg,#1a0d06,#2a1508)';
+  };
+
+  // Get emoji for category
+  const getCategoryEmoji = (category) => {
+    const emojis = {
+      'Digital Art': '🖼️',
+      'Animation': '🎬',
+      '3D Art': '🎨',
+      'Generative': '⚡',
+      'Collection': '📚',
+    };
+    return emojis[category] || '🖼️';
+  };
+
+  if (loading) {
+    return (
+      <div style={S.page}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{
+                width: 10, height: 10, borderRadius: '50%', background: '#c67a34',
+                animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+              }} />
+            ))}
+          </div>
+          <p style={{ color: 'rgba(244,208,144,0.6)' }}>Loading NFTs...</p>
+          <style>{`@keyframes pulse{0%,80%,100%{transform:scale(0.6);opacity:0.3}40%{transform:scale(1);opacity:1}}`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={S.page}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1.5rem', padding: '2rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', opacity: 0.4 }}>🖼️</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", color: '#f4d090', fontSize: '1.5rem' }}>{error}</h2>
+          <button onClick={() => navigate('/homevr')} style={{
+            background: 'linear-gradient(135deg, #8B6914, #c67a34)',
+            border: 'none', borderRadius: '8px', padding: '0.75rem 1.5rem',
+            color: '#fff', fontFamily: "'DM Sans', sans-serif",
+            fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
+          }}>← Back to HomeVR</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>
@@ -317,12 +431,17 @@ export default function NFTs() {
           <h1 style={S.h1}>The Digital Kraal</h1>
           <p style={S.subtitle}>
             Authentic African digital art, tokenised on the blockchain —
-            own a piece of the culture forever.
+            {artist ? ` curated by ${artist.name}` : ' own a piece of the culture forever.'}
           </p>
           <div style={S.statsRow}>
-            {[['24', 'Works'], ['12', 'Artists'], ['3', 'Drops'], ['ETH', 'Currency']].map(([n, l]) => (
+            {[
+              [nfts.length, 'Works'],
+              [new Set(nfts.map(n => n.category)).size, 'Categories'],
+              [artist ? 1 : new Set(nfts.map(n => n.artist_id)).size, 'Artists'],
+              ['ETH', 'Currency']
+            ].map(([n, l]) => (
               <div key={l} style={S.statBox}>
-                <span style={S.statNum}>{n}</span>
+                <span style={S.statNum}>{typeof n === 'number' ? n : n}</span>
                 <span style={S.statLabel}>{l}</span>
               </div>
             ))}
@@ -333,6 +452,26 @@ export default function NFTs() {
       {/* ══ CONTENT — below the header ══ */}
       <div style={S.body}>
 
+        {/* Back button if artist is specified */}
+        {artist && (
+          <button 
+            onClick={() => navigate('/homevr')}
+            style={{
+              background: 'rgba(198,122,52,0.2)',
+              border: '1px solid rgba(198,122,52,0.3)',
+              borderRadius: '8px',
+              padding: '0.4rem 1rem',
+              color: '#f4d090',
+              cursor: 'pointer',
+              marginBottom: '1rem',
+              fontSize: '0.8rem',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          >
+            ← Back to HomeVR
+          </button>
+        )}
+
         {/* Filter pills */}
         <div style={S.filterRow}>
           {FILTERS.map(f => (
@@ -341,31 +480,49 @@ export default function NFTs() {
         </div>
 
         {/* NFT Grid */}
-        <div style={S.grid}>
-          {filtered.map(nft => (
-            <div
-              key={nft.id}
-              style={S.card(hovered === nft.id)}
-              onMouseEnter={() => setHovered(nft.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => setSelected(nft)}
-            >
-              <div style={S.cardThumb(nft.bg)}>
-                <span>{nft.emoji}</span>
-                <span style={S.badge}>{nft.edition}</span>
-              </div>
-              <div style={S.cardBody}>
-                <span style={S.cardCategory}>{nft.category}</span>
-                <h3 style={S.cardTitle}>{nft.title}</h3>
-                <p style={S.cardArtist}>{nft.artist}</p>
-                <div style={S.cardFooter}>
-                  <span style={S.price}>{nft.price}</span>
-                  <button style={S.ctaBtn}>View NFT</button>
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0', color: 'rgba(244,208,144,0.4)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🖼️</div>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.2rem' }}>
+              {artist ? `${artist.name} doesn't have any NFTs yet` : 'No NFTs found in this category'}
+            </p>
+          </div>
+        ) : (
+          <div style={S.grid}>
+            {filtered.map(nft => {
+              const bgGradient = nft.image_url ? `url(${nft.image_url})` : getGradient(nft.id);
+              const isImage = nft.image_url ? true : false;
+              
+              return (
+                <div
+                  key={nft.id}
+                  style={S.card(hovered === nft.id)}
+                  onMouseEnter={() => setHovered(nft.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => setSelected(nft)}
+                >
+                  <div style={{
+                    ...S.cardThumb(bgGradient),
+                    backgroundSize: isImage ? 'cover' : 'cover',
+                    backgroundPosition: 'center',
+                  }}>
+                    {!nft.image_url && <span>{getCategoryEmoji(nft.category)}</span>}
+                    {nft.edition && <span style={S.badge}>{nft.edition}</span>}
+                  </div>
+                  <div style={S.cardBody}>
+                    <span style={S.cardCategory}>{nft.category}</span>
+                    <h3 style={S.cardTitle}>{nft.title}</h3>
+                    <p style={S.cardArtist}>{artist ? artist.name : 'Kwa Khanye'}</p>
+                    <div style={S.cardFooter}>
+                      <span style={S.price}>{nft.price} {nft.currency || 'ETH'}</span>
+                      <button style={S.ctaBtn}>View NFT</button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ══ MODAL ══ */}
@@ -373,13 +530,22 @@ export default function NFTs() {
         <div style={S.overlay} onClick={() => setSelected(null)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <button style={S.closeBtn} onClick={() => setSelected(null)}>✕</button>
-            <div style={{ ...S.modalHero, background: selected.bg }}>{selected.emoji}</div>
+            <div style={{
+              ...S.modalHero,
+              background: selected.image_url ? `url(${selected.image_url})` : getGradient(selected.id),
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}>
+              {!selected.image_url && <span style={{ opacity: 0.4 }}>{getCategoryEmoji(selected.category)}</span>}
+            </div>
             <div style={S.modalBody}>
-              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c67a34' }}>{selected.category} &nbsp;·&nbsp; {selected.edition}</span>
+              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c67a34' }}>
+                {selected.category} &nbsp;·&nbsp; {selected.edition || 'Limited'}
+              </span>
               <h2 style={S.modalTitle}>{selected.title}</h2>
-              <p style={S.modalArtist}>by {selected.artist}</p>
-              <p style={S.modalDesc}>{selected.desc}</p>
-              <span style={S.modalPrice}>{selected.price}</span>
+              <p style={S.modalArtist}>by {artist ? artist.name : 'Kwa Khanye Studio'}</p>
+              <p style={S.modalDesc}>{selected.description || 'No description available.'}</p>
+              <span style={S.modalPrice}>{selected.price} {selected.currency || 'ETH'}</span>
               <button style={S.modalAction}>Mint / Purchase NFT</button>
             </div>
           </div>

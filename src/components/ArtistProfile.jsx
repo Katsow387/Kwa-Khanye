@@ -417,16 +417,16 @@ export default function ArtistProfile() {
     {
       icon: homevrImg,
       title: 'Home VR',
-      disabled: !artist.has_vr,
-      comingSoon: !artist.has_vr,
-      onClick: () => navigate(artist.vr_route || '/homevr'),
+      disabled: false,
+      comingSoon: false,
+      onClick: () => navigate(artist.vr_route || `/homevr?artist=${encodeURIComponent(artist.name)}`),
     },
     {
       icon: bioscopeImg,
       title: 'Bioscope',
-      disabled: !artist.has_bioscope,
-      comingSoon: !artist.has_bioscope,
-      onClick: () => navigate(artist.bioscope_route || '/bioscope'),
+      disabled: false,
+      comingSoon: false,
+      onClick: () => navigate(artist.bioscope_route || `/bioscope?artist=${encodeURIComponent(artist.name)}`),
     },
   ];
 
