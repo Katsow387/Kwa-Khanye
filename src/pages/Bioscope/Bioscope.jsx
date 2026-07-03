@@ -13,6 +13,8 @@ export default function Bioscope() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [artist, setArtist] = useState(null);
+  const [hoveredFrame, setHoveredFrame] = useState(null);
+  const [allArtists, setAllArtists] = useState([]);
 
   // Get artist from URL params
   const searchParams = new URLSearchParams(location.search);
@@ -28,10 +30,26 @@ export default function Bioscope() {
         return;
       }
 
+      await fetchAllArtists();
       await fetchBioscopeContent();
     };
     init();
   }, [navigate, artistName]);
+
+  // Fetch all artists for music videos and albums
+  const fetchAllArtists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('artists')
+        .select('id, name, country_id, culture_id')
+        .order('name');
+
+      if (error) throw error;
+      setAllArtists(data || []);
+    } catch (err) {
+      console.error('Error fetching all artists:', err);
+    }
+  };
 
   const fetchBioscopeContent = async () => {
     try {
@@ -43,7 +61,7 @@ export default function Bioscope() {
       if (artistName) {
         const { data: artistData, error: artistError } = await supabase
           .from('artists')
-          .select('id, name, has_bioscope')
+          .select('id, name')
           .ilike('name', `%${artistName}%`)
           .maybeSingle();
 
@@ -56,12 +74,6 @@ export default function Bioscope() {
 
         if (!artistData) {
           setError(`Artist "${artistName}" not found`);
-          setLoading(false);
-          return;
-        }
-
-        if (!artistData.has_bioscope) {
-          setError(`${artistData.name} doesn't have Bioscope content available yet`);
           setLoading(false);
           return;
         }
@@ -105,7 +117,7 @@ export default function Bioscope() {
     }
   };
 
-  // Handle Menu click (top right)
+  // Handle Menu click
   const handleMenuClick = () => {
     if (artist) {
       navigate(`/bioscope-gallery?artist=${encodeURIComponent(artist.name)}`);
@@ -114,7 +126,33 @@ export default function Bioscope() {
     }
   };
 
-  // Handle Explore click (bottom center)
+  // Wall-picture hotspots — each frame goes straight to its own destination
+  
+  // 1st Frame: Biography - goes to the specific artist if one is selected
+  const goToBiography = () => {
+    if (artist?.id) navigate(`/artist/${artist.id}`);
+    else if (artist?.name) navigate(`/artist?name=${encodeURIComponent(artist.name)}`);
+    else navigate('/artists'); // Fallback to all artists
+  };
+
+  // 2nd Frame: Music Videos - shows music videos for ALL artists across all tribes
+  const goToMusicVideo = () => {
+    navigate(`/music?mode=all-videos`);
+  };
+
+  // 3rd Frame: Albums - shows albums for ALL artists across all tribes
+  const goToAlbum = () => {
+    navigate(`/music?mode=all-albums`);
+  };
+
+  // "Kwa Khanye" home sign — takes you back to the artist's page or home
+  const goToArtistHome = () => {
+    if (artist?.id) navigate(`/artist/${artist.id}`);
+    else if (artist?.name) navigate(`/artist?name=${encodeURIComponent(artist.name)}`);
+    else navigate('/');
+  };
+
+  // Handle Explore click
   const handleExploreClick = () => {
     if (artist) {
       navigate(`/bioscope-gallery?artist=${encodeURIComponent(artist.name)}&explore=true`);
@@ -241,25 +279,25 @@ export default function Bioscope() {
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
       }}>
-        
-        {/* --- HOTSPOT: MENU (top‑right area) --- */}
+
+        {/* --- HOTSPOT: MENU — moved to match the real pill button (bottom-center-left) --- */}
         <div
           onClick={handleMenuClick}
           onMouseEnter={() => setHoverMenu(true)}
           onMouseLeave={() => setHoverMenu(false)}
           style={{
             position: 'absolute',
-            top: '5%',
-            right: '5%',
-            width: '15%',
-            height: '10%',
+            left: '37%',
+            top: '90%',
+            width: '13%',
+            height: '6%',
             cursor: 'pointer',
-            zIndex: 20,
+            zIndex: 25,
             background: hoverMenu
-              ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.18) 0%, rgba(198,122,52,0.08) 60%, transparent 100%)'
+              ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.25) 0%, rgba(198,122,52,0.1) 60%, transparent 100%)'
               : 'transparent',
-            transition: 'background 0.4s ease',
-            borderRadius: '8px',
+            transition: 'background 0.3s ease',
+            borderRadius: '50px',
           }}
           aria-label="Menu"
         >
@@ -267,8 +305,8 @@ export default function Bioscope() {
           <div style={{
             position: 'absolute',
             bottom: 'calc(100% + 10px)',
-            right: '0',
-            transform: hoverMenu ? 'translateY(0)' : 'translateY(8px)',
+            left: '50%',
+            transform: hoverMenu ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(8px)',
             opacity: hoverMenu ? 1 : 0,
             transition: 'all 0.35s ease',
             pointerEvents: 'none',
@@ -312,25 +350,24 @@ export default function Bioscope() {
           </div>
         </div>
 
-        {/* --- HOTSPOT: EXPLORE (bottom‑center area) --- */}
+        {/* --- HOTSPOT: EXPLORE — moved to match the real pill button (bottom-center-right) --- */}
         <div
           onClick={handleExploreClick}
           onMouseEnter={() => setHoverExplore(true)}
           onMouseLeave={() => setHoverExplore(false)}
           style={{
             position: 'absolute',
-            bottom: '8%',
             left: '50%',
-            transform: 'translateX(-50%)',
-            width: '25%',
-            height: '12%',
+            top: '90%',
+            width: '13%',
+            height: '6%',
             cursor: 'pointer',
-            zIndex: 20,
+            zIndex: 25,
             background: hoverExplore
-              ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.18) 0%, rgba(198,122,52,0.08) 60%, transparent 100%)'
+              ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.25) 0%, rgba(198,122,52,0.1) 60%, transparent 100%)'
               : 'transparent',
-            transition: 'background 0.4s ease',
-            borderRadius: '8px',
+            transition: 'background 0.3s ease',
+            borderRadius: '50px',
           }}
           aria-label="Explore"
         >
@@ -383,13 +420,70 @@ export default function Bioscope() {
           </div>
         </div>
 
+        {/* --- WALL PICTURE HOTSPOTS: 1st = Biography, 2nd = Music Video (ALL ARTISTS), 3rd = Albums (ALL ARTISTS) --- */}
+        {[
+          { key: 'poster',   label: 'Biography',   onClick: goToBiography,  left: '15.5%', top: '17%', width: '19.5%', height: '25%' },
+          { key: 'video',    label: 'Music Videos',  onClick: goToMusicVideo, left: '41%',   top: '17%', width: '20%',   height: '25%' },
+          { key: 'arrivals', label: 'Albums',       onClick: goToAlbum,      left: '66%',   top: '15%', width: '22%',   height: '27%' },
+        ].map(frame => (
+          <div
+            key={frame.key}
+            onClick={frame.onClick}
+            onMouseEnter={() => setHoveredFrame(frame.key)}
+            onMouseLeave={() => setHoveredFrame(null)}
+            style={{
+              position: 'absolute',
+              left: frame.left,
+              top: frame.top,
+              width: frame.width,
+              height: frame.height,
+              cursor: 'pointer',
+              zIndex: 20,
+              background: hoveredFrame === frame.key
+                ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.18) 0%, rgba(198,122,52,0.08) 60%, transparent 100%)'
+                : 'transparent',
+              boxShadow: hoveredFrame === frame.key
+                ? 'inset 0 0 30px rgba(232,168,76,0.2), 0 0 40px rgba(198,122,52,0.15)'
+                : 'none',
+              transition: 'background 0.3s ease, box-shadow 0.3s ease',
+              borderRadius: '4px',
+            }}
+            aria-label={frame.label}
+          />
+        ))}
+
+        {/* --- HOTSPOT: HOME (the "Kwa Khanye" wooden sign) — back to the artist page --- */}
+        <div
+          onClick={goToArtistHome}
+          onMouseEnter={() => setHoveredFrame('home')}
+          onMouseLeave={() => setHoveredFrame(null)}
+          style={{
+            position: 'absolute',
+            left: '38%',
+            top: '41%',
+            width: '26%',
+            height: '7%',
+            cursor: 'pointer',
+            zIndex: 20,
+            background: hoveredFrame === 'home'
+              ? 'radial-gradient(ellipse at center, rgba(232,168,76,0.18) 0%, rgba(198,122,52,0.08) 60%, transparent 100%)'
+              : 'transparent',
+            boxShadow: hoveredFrame === 'home'
+              ? 'inset 0 0 30px rgba(232,168,76,0.2), 0 0 40px rgba(198,122,52,0.15)'
+              : 'none',
+            transition: 'background 0.3s ease, box-shadow 0.3s ease',
+            borderRadius: '8px',
+          }}
+          aria-label="Home"
+        />
+
         {/* BOTTOM HINT */}
         <div style={{
           position: 'absolute',
           bottom: '2%',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 30,
+          zIndex: 15,
           textAlign: 'center',
           pointerEvents: 'none',
           animation: 'pulseHint 2.5s ease-in-out infinite',
@@ -400,17 +494,7 @@ export default function Bioscope() {
               50% { opacity: 1; transform: translateX(-50%) translateY(-4px); }
             }
           `}</style>
-          <p style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '0.65rem',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: 'rgba(244,208,144,0.7)',
-            margin: 0,
-            textShadow: '0 1px 4px rgba(0,0,0,0.8)',
-          }}>
-            Hover over a hotspot to explore
-          </p>
+
           {artist && (
             <p style={{
               fontFamily: "'DM Sans', sans-serif",
@@ -421,6 +505,20 @@ export default function Bioscope() {
               textShadow: '0 1px 4px rgba(0,0,0,0.8)',
             }}>
               {bioscopeContent.length} films • {artist.name}
+            </p>
+          )}
+
+          {/* Show count of all artists for music videos and albums */}
+          {!artist && allArtists.length > 0 && (
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '0.55rem',
+              letterSpacing: '0.12em',
+              color: 'rgba(198,122,52,0.4)',
+              margin: '0.2rem 0 0',
+              textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+            }}>
+              {allArtists.length} artists across all tribes
             </p>
           )}
         </div>
