@@ -90,7 +90,7 @@ function NowPlaying() {
 
     if (currentTrack.preview) {
       audio.pause();
-      setIsPlaying(false);                     // stop spinning while loading
+      setIsPlaying(false);
       audio.src = currentTrack.preview;
       audio.load();
       audio.play()
@@ -105,7 +105,7 @@ function NowPlaying() {
 
   const nextTrack = () => {
     if (!currentPlaylist.length) return;
-    setIsPlaying(false);                       // stop spinning before transitioning
+    setIsPlaying(false);
     let newIndex = currentTrackIndex + 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex >= len) {
@@ -133,7 +133,7 @@ function NowPlaying() {
     if (!audioRef.current || currentTrackIndex === -1) return;
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);                     // stop spinning immediately
+      setIsPlaying(false);
     } else {
       audioRef.current.play()
         .then(() => setIsPlaying(true))
@@ -218,12 +218,20 @@ function NowPlaying() {
         </div>
       </div>
 
-      {/* Calabash disc – spinning controlled by isPlaying */}
+      {/* Calabash disc – use album art if available */}
       <div className="np-disc-area">
         <div className={`np-glow-ring${isPlaying ? ' spinning' : ''}`} />
         <div className={`np-gold-ring${isPlaying ? ' spinning' : ''}`}>
           <div className="np-disc-inner">
-            <img src={calabashImage} alt="Calabash" className="np-disc-img" />
+            {currentTrack.cover_medium || currentTrack.cover_small ? (
+              <img 
+                src={currentTrack.cover_medium || currentTrack.cover_small} 
+                alt={currentTrack.title} 
+                className="np-disc-img" 
+              />
+            ) : (
+              <img src={calabashImage} alt="Calabash" className="np-disc-img" />
+            )}
           </div>
         </div>
         {isPlaying && (

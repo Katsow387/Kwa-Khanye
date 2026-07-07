@@ -39,6 +39,13 @@ function Music() {
     const params = new URLSearchParams(location.search);
     const artistParam = params.get('artist');
     const modeParam = params.get('mode');
+    const albumIdParam = params.get('album');
+    
+    // Check if we're viewing a specific album
+    if (albumIdParam) {
+      fetchAlbumTracks(albumIdParam);
+      return;
+    }
     
     // Check if we're in all-artists mode
     if (modeParam === 'all-videos' || modeParam === 'all-albums') {
@@ -63,6 +70,68 @@ function Music() {
     checkAuth();
   }, [navigate]);
 
+  // ── Fetch album tracks ──
+  const fetchAlbumTracks = async (albumId) => {
+    setLoading(true);
+    setError('');
+    try {
+      // Get album info from bioscope_content
+      const { data: album, error: albumError } = await supabase
+        .from('bioscope_content')
+        .select(`
+          *,
+          artists (
+            id,
+            name
+          )
+        `)
+        .eq('id', albumId)
+        .single();
+
+      if (albumError) throw albumError;
+
+      // For now, create some sample tracks since we don't have album_tracks table
+      const sampleTracks = [
+        { title: 'Track 1', duration: 180 },
+        { title: 'Track 2', duration: 210 },
+        { title: 'Track 3', duration: 195 },
+        { title: 'Track 4', duration: 225 },
+        { title: 'Track 5', duration: 200 },
+        { title: 'Track 6', duration: 185 },
+        { title: 'Track 7', duration: 215 },
+        { title: 'Track 8', duration: 190 },
+      ];
+
+      // Transform to track format
+      const formattedTracks = sampleTracks.map((track, idx) => ({
+        id: `track-${idx}`,
+        title: track.title,
+        artist: album.artists?.name || 'Unknown Artist',
+        artist_id: album.artist_id,
+        album: album.title || 'Album',
+        duration: track.duration || 0,
+        preview: album.preview_url || '',
+        cover_small: album.cover_small || album.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=Album',
+        cover_medium: album.cover_medium || album.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=Album',
+        isAlbum: false,
+        isTrack: true,
+        trackNumber: idx + 1,
+      }));
+
+      setSearchResults(formattedTracks);
+      setSearchQuery(`${album.title} - ${album.artists?.name || 'Album'}`);
+      
+      if (formattedTracks.length === 0) {
+        setError('No tracks found for this album.');
+      }
+    } catch (err) {
+      console.error('Error fetching album tracks:', err);
+      setError('Failed to load album tracks. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ── Fetch all artists content for videos or albums ──
   const fetchAllArtistsContent = async (mode) => {
     setLoading(true);
@@ -70,101 +139,50 @@ function Music() {
     try {
       let tracks = [];
       
-      if (mode === 'all-videos') {
-        // Fetch music videos from your table
-        const { data: videos, error: videosError } = await supabase
-          .from('music_videos')
-          .select(`
-            *,
-            artists (
-              id,
-              name
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(30);
+      // Determine the type to filter by
+      const contentType = mode === 'all-videos' ? 'music_video' : 'album';
+      
+      // Fetch from bioscope_content using the 'type' column
+      const { data: content, error: contentError } = await supabase
+        .from('bioscope_content')
+        .select(`
+          *,
+          artists (
+            id,
+            name
+          )
+        `)
+        .eq('type', contentType)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
-        if (videosError) {
-          console.error('Videos fetch error:', videosError);
-          throw videosError;
-        }
-        
-        // Transform to match track format
-        if (videos && videos.length > 0) {
-          tracks = videos.map(video => ({
-            id: video.id,
-            title: video.title || 'Untitled Video',
-            artist: video.artists?.name || 'Unknown Artist',
-            artist_id: video.artist_id,
-            album: 'Music Video',
-            duration: video.duration || 180,
-            preview: video.video_url || '',
-            cover_small: video.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=' + encodeURIComponent(video.title || 'Video'),
-            cover_medium: video.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=' + encodeURIComponent(video.title || 'Video'),
-            isVideo: true,
-            videoUrl: video.video_url,
-            views: video.views || 0,
-            featured: video.featured || false,
-            release_date: video.release_date,
-            description: video.description,
-          }));
-        }
-      } else if (mode === 'all-albums') {
-        // Try to get from bioscope_content as albums fallback
-        const { data: bioscopeData, error: bioscopeError } = await supabase
-          .from('bioscope_content')
-          .select(`
-            *,
-            artists (
-              id,
-              name
-            )
-          `)
-          .eq('content_type', 'album')
-          .order('created_at', { ascending: false })
-          .limit(30);
+      if (contentError) {
+        console.error('Content fetch error:', contentError);
+        throw contentError;
+      }
 
-        if (!bioscopeError && bioscopeData && bioscopeData.length > 0) {
-          tracks = bioscopeData.map(item => ({
+      if (content && content.length > 0) {
+        tracks = content.map(item => {
+          const isVideo = mode === 'all-videos';
+          return {
             id: item.id,
-            title: item.title || 'Untitled Album',
+            title: item.title || (isVideo ? 'Untitled Video' : 'Untitled Album'),
             artist: item.artists?.name || item.artist_name || 'Unknown Artist',
             artist_id: item.artist_id,
-            album: item.title || 'Album',
-            duration: 0,
-            preview: item.preview_url || '',
-            cover_small: item.cover_url || item.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=Album',
-            cover_medium: item.cover_url || item.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=Album',
-            isAlbum: true,
+            album: isVideo ? 'Music Video' : item.title || 'Album',
+            duration: item.duration || (isVideo ? 180 : 0),
+            preview: isVideo ? item.video_url : item.preview_url || '',
+            cover_small: item.cover_small || item.thumbnail_url || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=' + encodeURIComponent(item.title || 'Content'),
+            cover_medium: item.cover_medium || item.thumbnail_url || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=' + encodeURIComponent(item.title || 'Content'),
+            isVideo: isVideo,
+            isAlbum: !isVideo,
+            videoUrl: item.video_url,
             albumId: item.id,
-            releaseYear: item.release_year || null,
-          }));
-        } else {
-          // Try to get albums from artists as fallback
-          const { data: artistsData, error: artistsError } = await supabase
-            .from('artists')
-            .select('id, name, profile_image')
-            .order('name')
-            .limit(20);
-
-          if (!artistsError && artistsData && artistsData.length > 0) {
-            tracks = artistsData.map(artist => ({
-              id: `artist-album-${artist.id}`,
-              title: `${artist.name} - Album Collection`,
-              artist: artist.name,
-              artist_id: artist.id,
-              album: 'Album Collection',
-              duration: 0,
-              preview: '',
-              cover_small: artist.profile_image || 'https://via.placeholder.com/150x150/8B6914/f4d090?text=' + encodeURIComponent(artist.name),
-              cover_medium: artist.profile_image || 'https://via.placeholder.com/300x300/8B6914/f4d090?text=' + encodeURIComponent(artist.name),
-              isAlbum: true,
-              albumId: `album-${artist.id}`,
-              releaseYear: null,
-              isPlaceholder: true,
-            }));
-          }
-        }
+            releaseYear: item.year || null,
+            description: item.description,
+            featured: item.featured || false,
+          };
+        });
       }
 
       setSearchResults(tracks);
@@ -240,33 +258,31 @@ function Music() {
   }, []);
 
   const selectTrack = (track) => {
+    // If it's an album, navigate to album view
+    if (track.isAlbum && track.albumId) {
+      navigate(`/music?album=${track.albumId}`);
+      return;
+    }
+    
+    // If it's a video, navigate to video player
+    if (track.isVideo && track.videoUrl) {
+      navigate('/video-player', {
+        state: {
+          videoUrl: track.videoUrl,
+          title: track.title,
+          artist: track.artist,
+          description: track.description,
+          release_year: track.releaseYear,
+        },
+      });
+      return;
+    }
+    
+    // Regular track - go to now playing
     setCurrentPlaylist(searchResults);
     const idx = searchResults.findIndex(t => t.id === track.id);
     if (idx !== -1) {
       if (audioRef.current) audioRef.current.pause();
-      
-      // If it's a video, navigate to video player
-      if (track.isVideo && track.videoUrl) {
-        navigate('/video-player', {
-          state: {
-            videoUrl: track.videoUrl,
-            title: track.title,
-            artist: track.artist,
-            description: track.description,
-            views: track.views,
-            release_date: track.release_date,
-          },
-        });
-        return;
-      }
-      
-      // If it's an album, navigate to album view
-      if (track.isAlbum && track.albumId) {
-        navigate(`/album/${track.albumId}`);
-        return;
-      }
-      
-      // Regular track - go to now playing
       navigate('/now-playing', {
         state: {
           playlist: searchResults,
@@ -421,9 +437,11 @@ function Music() {
   const params = new URLSearchParams(location.search);
   const artistFromUrl = params.get('artist');
   const modeFromUrl = params.get('mode');
+  const albumIdFromUrl = params.get('album');
 
   // Determine header text based on mode
   const getHeaderText = () => {
+    if (albumIdFromUrl) return 'Album Details';
     if (modeFromUrl === 'all-videos') return 'All Music Videos';
     if (modeFromUrl === 'all-albums') return 'All Albums';
     if (artistFromUrl) return `Songs by ${artistFromUrl}`;
@@ -431,6 +449,7 @@ function Music() {
   };
 
   const getSubtitleText = () => {
+    if (albumIdFromUrl) return 'Viewing album tracks and songs';
     if (modeFromUrl === 'all-videos') return 'Music videos from all artists across all tribes';
     if (modeFromUrl === 'all-albums') return 'Albums from all artists across all tribes';
     if (artistFromUrl) return `Search within ${artistFromUrl}'s discography or type a new query`;
@@ -438,6 +457,7 @@ function Music() {
   };
 
   const getPlaceholderText = () => {
+    if (albumIdFromUrl) return 'Search within this album...';
     if (modeFromUrl === 'all-videos') return 'Search within all music videos...';
     if (modeFromUrl === 'all-albums') return 'Search within all albums...';
     if (artistFromUrl) return `Search ${artistFromUrl}'s songs…`;
@@ -447,6 +467,15 @@ function Music() {
   // Check if track is playable (has preview)
   const isTrackPlayable = (track) => {
     return track.preview && track.preview.length > 0;
+  };
+
+  // Back button for album view
+  const handleBack = () => {
+    if (albumIdFromUrl) {
+      navigate('/music?mode=all-albums');
+    } else if (modeFromUrl) {
+      navigate('/music');
+    }
   };
 
   return (
@@ -462,6 +491,11 @@ function Music() {
             <div className="music-eyebrow">
               <span className="eyebrow-dot" />
               Kwa Khanye
+              {albumIdFromUrl && (
+                <button onClick={handleBack} className="back-button">
+                  ← Back to Albums
+                </button>
+              )}
             </div>
             <h1 className="music-title">
               {getHeaderText()}
@@ -491,14 +525,14 @@ function Music() {
                   }
                 }}
               />
-              {searchQuery && !allArtistsMode && (
+              {searchQuery && !allArtistsMode && !albumIdFromUrl && (
                 <button className="search-clear" onClick={() => setSearchQuery('')} aria-label="Clear search">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               )}
-              {allArtistsMode && (
+              {(allArtistsMode || albumIdFromUrl) && (
                 <button 
                   className="search-clear" 
                   onClick={() => {
@@ -537,7 +571,7 @@ function Music() {
 
         {!loading && (
           <div className="music-tracklist">
-            {searchResults.length === 0 && searchQuery.trim() !== '' && (
+            {searchResults.length === 0 && searchQuery.trim() !== '' && !allArtistsMode && !albumIdFromUrl && (
               <div className="empty-state">
                 <div className="empty-icon">🎧</div>
                 <p className="empty-title">No results found</p>
@@ -545,7 +579,7 @@ function Music() {
               </div>
             )}
 
-            {searchResults.length === 0 && searchQuery.trim() === '' && !allArtistsMode && (
+            {searchResults.length === 0 && searchQuery.trim() === '' && !allArtistsMode && !albumIdFromUrl && (
               <div className="welcome-state">
                 <div className="welcome-grid">
                   {['Afrobeats', 'Amapiano', 'Afro Soul', 'Hip Hop', 'R&B', 'Gospel'].map(genre => (
@@ -561,11 +595,16 @@ function Music() {
               <div className="tracklist-body">
                 <div className="tracklist-meta">
                   <span className="tracklist-count">
-                    {searchResults.length} {modeType === 'videos' ? 'videos' : modeType === 'albums' ? 'albums' : 'tracks'}
+                    {searchResults.length} {modeType === 'videos' ? 'videos' : modeType === 'albums' ? 'albums' : albumIdFromUrl ? 'tracks' : 'tracks'}
                   </span>
                   {allArtistsMode && (
                     <span className="tracklist-mode-badge">
                       {modeType === 'videos' ? '🎬 All Music Videos' : '💿 All Albums'}
+                    </span>
+                  )}
+                  {albumIdFromUrl && (
+                    <span className="tracklist-mode-badge">
+                      💿 Album Tracks
                     </span>
                   )}
                 </div>
@@ -573,9 +612,13 @@ function Music() {
                   <span className="th-num">#</span>
                   <span className="th-title">Title</span>
                   <span className="th-artist">Artist</span>
-                  <span className="th-album">{modeType === 'albums' ? 'Release Year' : 'Album'}</span>
+                  <span className="th-album">
+                    {modeType === 'albums' ? 'Year' : 
+                     albumIdFromUrl ? 'Track #' : 
+                     modeType === 'videos' ? 'Type' : 'Album'}
+                  </span>
                   <span className="th-dur">
-                    {modeType === 'videos' ? '👁️' : (
+                    {modeType === 'videos' ? '📹' : (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                       </svg>
@@ -606,7 +649,7 @@ function Music() {
                                   : <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                                 }
                               </span>
-                            : <span className="idx-num">{idx + 1}</span>
+                            : <span className="idx-num">{track.trackNumber || idx + 1}</span>
                           }
                         </div>
                         <div className="track-info-cell">
@@ -616,15 +659,18 @@ function Music() {
                             {track.isVideo && <span className="track-badge video">📹</span>}
                             {track.isAlbum && <span className="track-badge album">💿</span>}
                             {track.featured && <span className="track-badge featured">⭐</span>}
+                            {track.isTrack && <span className="track-badge track">🎵</span>}
                           </span>
                         </div>
                         <div className="track-artist-cell">{track.artist}</div>
                         <div className="track-album-cell">
-                          {modeType === 'albums' ? (track.releaseYear || '—') : track.album}
+                          {modeType === 'albums' ? (track.releaseYear || '—') : 
+                           albumIdFromUrl ? `#${track.trackNumber || idx + 1}` : 
+                           track.album}
                         </div>
                         <div className="track-dur-cell">
                           {modeType === 'albums' ? 'Album' : 
-                           modeType === 'videos' ? (track.views ? `${(track.views / 1000).toFixed(1)}K` : '—') : 
+                           modeType === 'videos' ? 'Video' : 
                            formatTime(track.duration)}
                         </div>
                       </div>

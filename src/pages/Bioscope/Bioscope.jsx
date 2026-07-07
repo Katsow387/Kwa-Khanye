@@ -59,27 +59,37 @@ export default function Bioscope() {
       // If artistName is provided, find the artist first
       let artistId = null;
       if (artistName) {
-        const { data: artistData, error: artistError } = await supabase
-          .from('artists')
-          .select('id, name')
-          .ilike('name', `%${artistName}%`)
-          .maybeSingle();
+        try {
+          // Use .limit(1) instead of .maybeSingle() to avoid PGRST116 error
+          const { data: artistData, error: artistError } = await supabase
+            .from('artists')
+            .select('id, name')
+            .ilike('name', `%${artistName}%`)
+            .limit(1);
 
-        if (artistError) {
-          console.error('Artist fetch error:', artistError);
+          if (artistError) {
+            console.error('Artist fetch error:', artistError);
+            setError('Could not find this artist');
+            setLoading(false);
+            return;
+          }
+
+          // Check if we got any results
+          if (!artistData || artistData.length === 0) {
+            setError(`Artist "${artistName}" not found`);
+            setLoading(false);
+            return;
+          }
+
+          // Use the first result
+          artistId = artistData[0].id;
+          setArtist(artistData[0]);
+        } catch (err) {
+          console.error('Error fetching artist:', err);
           setError('Could not find this artist');
           setLoading(false);
           return;
         }
-
-        if (!artistData) {
-          setError(`Artist "${artistName}" not found`);
-          setLoading(false);
-          return;
-        }
-
-        artistId = artistData.id;
-        setArtist(artistData);
       }
 
       // Fetch Bioscope content - direct Supabase query
