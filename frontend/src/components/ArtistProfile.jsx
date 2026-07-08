@@ -8,17 +8,44 @@ import musicImg from '../assets/images/pot_music.png';
 import homevrImg from '../assets/images/pot_homevr.png';
 import bioscopeImg from '../assets/images/pot_bioscope.png';
 
-// Busi's hero image
+// ── Import local artist images ──
 import busiImage from '../assets/images/Busi.jpg';
+import bhekumuziImage from '../assets/images/Bhekumuzi.jpg';
+import gatsheniImage from '../assets/images/Gatsheni.jpg';
+import igcokamaImage from '../assets/images/Igcokama.jpg';
+import jabuKhanyileImage from '../assets/images/Jabu Khanyile.jpg';
+import josephShabalalaImage from '../assets/images/Joseph Shabalala.jpg';
+import khuzaniMpungoseImage from '../assets/images/Khuzani Mpungose.jpg';
+import ladysmithImage from '../assets/images/Ladysmith.jpg';
 
-// Background - NOW USING NowPlay.jpg
+// ── Image mapping by artist name ──
+const artistImageMap = {
+  'busi mhlongo': busiImage,
+  'bhekumuzi luthuli': bhekumuziImage,
+  'gatsheni': gatsheniImage,
+  'igcokama': igcokamaImage,
+  'igcokama elisha': igcokamaImage,  // 🔥 Added
+  'mthandi': igcokamaImage,          // 🔥 Added
+  'jabu khanyile': jabuKhanyileImage,
+  'joseph shabalala': josephShabalalaImage,
+  'khuzani mpungose': khuzaniMpungoseImage,
+  'ladysmith black mambazo': ladysmithImage,
+};
+
+function getArtistImage(artistName) {
+  if (!artistName) return null;
+  const lowerName = artistName.toLowerCase().trim();
+  return artistImageMap[lowerName] || null;
+}
+
+// Background
 import backgroundImage from '../assets/images/NowPlay.jpg';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S = {
   page: {
     minHeight: '100vh',
-    height: '100vh', // 🔥 ADDED: Forces full viewport height
+    height: '100vh',
     fontFamily: "'DM Sans', sans-serif",
     color: '#f4d090',
     position: 'relative',
@@ -28,7 +55,7 @@ const S = {
     backgroundAttachment: 'fixed',
     backgroundColor: 'rgba(10, 6, 3, 0.85)',
     backgroundBlendMode: 'multiply',
-    overflowY: 'auto', // 🔥 ADDED: Allows scrolling if content overflows
+    overflowY: 'auto',
   },
 
   backBtn: {
@@ -401,8 +428,9 @@ export default function ArtistProfile() {
     );
   }
 
-  // Hero image
-  const heroImage = (artist.name && artist.name.toLowerCase().includes('busi')) ? busiImage : artist.photo_url;
+  // ── Hero image: prefer local mapping, fallback to photo_url ──
+  const localImage = getArtistImage(artist.name);
+  const heroImage = localImage || artist.photo_url || null;
 
   // ─── HUB DATA ──────────────────────────────────────────────────────────────
   const hubs = [
@@ -469,7 +497,7 @@ export default function ArtistProfile() {
         </div>
       </div>
 
-      {/* Body */}
+      {/* Body (same as before) */}
       <div style={S.body}>
         {/* Social Connect buttons */}
         {(artist.instagram || artist.spotify_url || artist.youtube_url) && (
