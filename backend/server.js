@@ -1,18 +1,26 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all requests
+// Enable CORS for all origins (optional, but safe)
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Backend proxy is running' });
-});
+// Serve static files from the frontend's dist folder
+// If this file is placed in the project root, __dirname is the root.
+// If placed inside a 'backend' folder, adjust path accordingly.
+// For root placement: __dirname + '/frontend/dist'
+// For backend folder placement: __dirname + '/../frontend/dist'
+const distPath = path.join(__dirname, 'frontend/dist');
+app.use(express.static(distPath));
 
-// Proxy endpoint for Deezer search
+// ------------------------------------------------------------
+// API Proxy routes for Deezer
+// ------------------------------------------------------------
+
+// Search endpoint
 app.get('/api/deezer/search', async (req, res) => {
     const query = req.query.q;
     if (!query) {
@@ -20,24 +28,22 @@ app.get('/api/deezer/search', async (req, res) => {
     }
 
     try {
-        console.log(`Proxying search for: ${query}`);
+        console.log(`Proxying Deezer search: ${query}`);
         const response = await fetch(
             `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=30`
         );
-        
         if (!response.ok) {
-            throw new Error(`Deezer API returned ${response.status}`);
+            throw new Error(`Deezer API error: ${response.status}`);
         }
-        
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error('Proxy error:', error.message);
         res.status(500).json({ error: 'Failed to fetch from Deezer', details: error.message });
     }
 });
 
-// Proxy endpoint for Deezer track (for now-playing)
+// Track details endpoint
 app.get('/api/deezer/track/:id', async (req, res) => {
     const trackId = req.params.id;
     if (!trackId) {
@@ -45,18 +51,28 @@ app.get('/api/deezer/track/:id', async (req, res) => {
     }
 
     try {
+        console.log(`Proxying Deezer track: ${trackId}`);
         const response = await fetch(`https://api.deezer.com/track/${trackId}`);
         if (!response.ok) {
-            throw new Error(`Deezer API returned ${response.status}`);
+            throw new Error(`Deezer API error: ${response.status}`);
         }
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error('Track proxy error:', error);
+        console.error('Track proxy error:', error.message);
         res.status(500).json({ error: 'Failed to fetch track details' });
     }
 });
 
+// ------------------------------------------------------------
+// Catch-all: serve index.html for any non-API routes
+// (this enables React Router to handle client-side routing)
+// ------------------------------------------------------------
+app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+});
+
+// Start the server
 app.listen(PORT, () => {
-    console.log(`✅ Backend proxy running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
 });
