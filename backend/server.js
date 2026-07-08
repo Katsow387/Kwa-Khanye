@@ -4,29 +4,19 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all origins (optional, but safe)
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the frontend's dist folder
-// If this file is placed in the project root, __dirname is the root.
-// If placed inside a 'backend' folder, adjust path accordingly.
-// For root placement: __dirname + '/frontend/dist'
-// For backend folder placement: __dirname + '/../frontend/dist'
-const distPath = path.join(__dirname, 'frontend/dist');
+// Serve static files from the frontend's dist folder (one level up)
+const distPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(distPath));
 
-// ------------------------------------------------------------
-// API Proxy routes for Deezer
-// ------------------------------------------------------------
-
-// Search endpoint
+// ---- API Proxy routes ----
 app.get('/api/deezer/search', async (req, res) => {
     const query = req.query.q;
     if (!query) {
         return res.status(400).json({ error: 'Missing search query' });
     }
-
     try {
         console.log(`Proxying Deezer search: ${query}`);
         const response = await fetch(
@@ -43,13 +33,11 @@ app.get('/api/deezer/search', async (req, res) => {
     }
 });
 
-// Track details endpoint
 app.get('/api/deezer/track/:id', async (req, res) => {
     const trackId = req.params.id;
     if (!trackId) {
         return res.status(400).json({ error: 'Missing track ID' });
     }
-
     try {
         console.log(`Proxying Deezer track: ${trackId}`);
         const response = await fetch(`https://api.deezer.com/track/${trackId}`);
@@ -64,15 +52,12 @@ app.get('/api/deezer/track/:id', async (req, res) => {
     }
 });
 
-// ------------------------------------------------------------
-// Catch-all: serve index.html for any non-API routes
-// (this enables React Router to handle client-side routing)
-// ------------------------------------------------------------
-app.get('*', (req, res) => {
+// ---- Catch‑all: serve index.html for any non-API route ----
+// Use app.use instead of app.get('*', ...) to avoid path-to-regexp parsing issues.
+app.use((req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// Start the server
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
 });
