@@ -90,7 +90,7 @@ function NowPlaying() {
 
     if (currentTrack.preview) {
       audio.pause();
-      setIsPlaying(false);                     // stop spinning while loading
+      setIsPlaying(false);
       audio.src = currentTrack.preview;
       audio.load();
       audio.play()
@@ -105,7 +105,7 @@ function NowPlaying() {
 
   const nextTrack = () => {
     if (!currentPlaylist.length) return;
-    setIsPlaying(false);                       // stop spinning before transitioning
+    setIsPlaying(false);
     let newIndex = currentTrackIndex + 1;
     const len = shuffle ? shuffledIndices.length : currentPlaylist.length;
     if (newIndex >= len) {
@@ -133,7 +133,7 @@ function NowPlaying() {
     if (!audioRef.current || currentTrackIndex === -1) return;
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);                     // stop spinning immediately
+      setIsPlaying(false);
     } else {
       audioRef.current.play()
         .then(() => setIsPlaying(true))
@@ -186,11 +186,23 @@ function NowPlaying() {
       <div className="np-page" style={{ backgroundImage: `url(${nowPlayingBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="np-overlay" style={{ background: 'rgba(8, 4, 1, 0.85)' }} />
         <div style={{ textAlign: 'center', marginTop: '40vh', color: '#D4A855' }}>
-          No track selected. <button onClick={() => navigate('/music')}>Go back</button>
+          No track selected. <button onClick={() => navigate('/music')} style={{ background: 'none', border: '1px solid #D4A855', color: '#D4A855', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Go back</button>
         </div>
       </div>
     );
   }
+
+  // 🔥 FIXED: Back button now navigates with state
+  const handleBack = () => {
+    navigate('/music', {
+      state: {
+        playlist: currentPlaylist,
+        trackIndex: shuffle ? shuffledIndices[currentTrackIndex] : currentTrackIndex,
+        shuffle: shuffle,
+        repeat: repeat,
+      }
+    });
+  };
 
   return (
     <div
@@ -207,7 +219,7 @@ function NowPlaying() {
 
       {/* Top bar */}
       <div className="np-topbar">
-        <button className="np-back-btn" onClick={() => navigate('/music')}>
+        <button className="np-back-btn" onClick={handleBack}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
@@ -218,7 +230,7 @@ function NowPlaying() {
         </div>
       </div>
 
-      {/* Calabash disc – spinning controlled by isPlaying */}
+      {/* Calabash disc */}
       <div className="np-disc-area">
         <div className={`np-glow-ring${isPlaying ? ' spinning' : ''}`} />
         <div className={`np-gold-ring${isPlaying ? ' spinning' : ''}`}>

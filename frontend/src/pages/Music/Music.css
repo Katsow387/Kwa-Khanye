@@ -825,3 +825,74 @@
 .music-search {
   border: 3px solid red !important;
 }
+/* Simplified tracklist header */
+.tracklist-header-simple {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--clr-border-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--clr-text-muted);
+  align-items: center;
+}
+
+/* Simplified track item */
+.track-item-simple {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px;
+  gap: 12px;
+  padding: 10px 20px;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.track-item-simple:hover {
+  background: rgba(212, 168, 85, 0.07);
+}
+
+.track-item-simple.active {
+  background: rgba(212, 168, 85, 0.10);
+}
+
+.track-item-simple.active .track-title {
+  color: var(--clr-gold-bright);
+}
+
+/* Remove the old .track-item styles if they conflict, or override */
+.track-info-cell-simple {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.track-info-cell-simple .track-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--clr-border);
+}
+
+.track-info-cell-simple .track-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--clr-cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition);
+}
+
+.track-dur-cell {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

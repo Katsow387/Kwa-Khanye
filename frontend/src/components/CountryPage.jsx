@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { COUNTRIES } from '../constants/countries';
 
-// --- Import your background image ---
-import backgroundImage from '../assets/images/Music Back.jpg';
+// --- Import your background image - NOW USING NowPlay.jpg ---
+import backgroundImage from '../assets/images/NowPlay.jpg';
 
 // --- Import culture images ---
 import ZuluImg from '../assets/images/Zulu.jpg';
@@ -48,6 +48,7 @@ export default function CountryPage() {
         backgroundAttachment: 'fixed',
         backgroundColor: 'rgba(26, 15, 10, 0.85)',
         backgroundBlendMode: 'multiply',
+        minHeight: '100vh',
       }}
     >
       <div className="country-page-content">

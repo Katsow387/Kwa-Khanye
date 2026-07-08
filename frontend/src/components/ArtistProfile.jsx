@@ -11,13 +11,14 @@ import bioscopeImg from '../assets/images/pot_bioscope.png';
 // Busi's hero image
 import busiImage from '../assets/images/Busi.jpg';
 
-// Background
-import backgroundImage from '../assets/images/Music Back.jpg';
+// Background - NOW USING NowPlay.jpg
+import backgroundImage from '../assets/images/NowPlay.jpg';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S = {
   page: {
     minHeight: '100vh',
+    height: '100vh', // 🔥 ADDED: Forces full viewport height
     fontFamily: "'DM Sans', sans-serif",
     color: '#f4d090',
     position: 'relative',
@@ -27,6 +28,7 @@ const S = {
     backgroundAttachment: 'fixed',
     backgroundColor: 'rgba(10, 6, 3, 0.85)',
     backgroundBlendMode: 'multiply',
+    overflowY: 'auto', // 🔥 ADDED: Allows scrolling if content overflows
   },
 
   backBtn: {
@@ -403,7 +405,6 @@ export default function ArtistProfile() {
   const heroImage = (artist.name && artist.name.toLowerCase().includes('busi')) ? busiImage : artist.photo_url;
 
   // ─── HUB DATA ──────────────────────────────────────────────────────────────
-  // 🔥 FIX: Always use /music?artist=... regardless of artist.music_route
   const hubs = [
     {
       icon: musicImg,
