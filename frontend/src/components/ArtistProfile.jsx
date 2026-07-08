@@ -153,7 +153,6 @@ const S = {
     background: 'rgba(198,122,52,0.15)',
   },
 
-  // ─── Bio with vertical divider and watermark ──────────────────────────
   bioWrapper: {
     position: 'relative',
     marginBottom: '2.5rem',
@@ -183,7 +182,6 @@ const S = {
     zIndex: 1,
   },
 
-  // ─── Social Connect buttons (gold pill) ──────────────────────────────
   socialRow: {
     display: 'flex',
     gap: '0.75rem',
@@ -209,7 +207,6 @@ const S = {
     color: '#1a0f0a',
   },
 
-  // ─── Hub cards (elevated containers) ──────────────────────────────────
   hubGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -364,7 +361,7 @@ export default function ArtistProfile() {
     fetchArtist();
   }, [artistId]);
 
-  // Loading & error states (unchanged)
+  // Loading & error states
   if (loading) {
     return (
       <div style={{ ...S.page, ...S.center }}>
@@ -405,14 +402,15 @@ export default function ArtistProfile() {
   // Hero image
   const heroImage = (artist.name && artist.name.toLowerCase().includes('busi')) ? busiImage : artist.photo_url;
 
-  // Hub data
+  // ─── HUB DATA ──────────────────────────────────────────────────────────────
+  // 🔥 FIX: Always use /music?artist=... regardless of artist.music_route
   const hubs = [
     {
       icon: musicImg,
       title: 'Music',
       disabled: !artist.has_music,
       comingSoon: !artist.has_music,
-      onClick: () => navigate(artist.music_route || `/music?artist=${encodeURIComponent(artist.name)}`),
+      onClick: () => navigate(`/music?artist=${encodeURIComponent(artist.name)}`),
     },
     {
       icon: homevrImg,
@@ -472,7 +470,7 @@ export default function ArtistProfile() {
 
       {/* Body */}
       <div style={S.body}>
-        {/* Social Connect buttons – gold pill style */}
+        {/* Social Connect buttons */}
         {(artist.instagram || artist.spotify_url || artist.youtube_url) && (
           <>
             <div style={S.sectionLabel}>
@@ -538,7 +536,7 @@ export default function ArtistProfile() {
           </>
         )}
 
-        {/* About section – with vertical divider & watermark quote */}
+        {/* About section */}
         {artist.bio && (
           <>
             <div style={S.sectionLabel}>
@@ -552,7 +550,7 @@ export default function ArtistProfile() {
           </>
         )}
 
-        {/* Explore the World – elevated hub cards */}
+        {/* Explore the World – hub cards */}
         <div style={S.sectionLabel}>
           <span>Explore {artist.name}'s World</span>
           <div style={S.sectionLabelLine} />
