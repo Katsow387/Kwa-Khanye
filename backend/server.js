@@ -3,10 +3,16 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Enable CORS for all requests
 app.use(cors());
 app.use(express.json());
 
-// Proxy endpoint for Deezer
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Backend proxy is running' });
+});
+
+// Proxy endpoint for Deezer search
 app.get('/api/deezer/search', async (req, res) => {
     const query = req.query.q;
     if (!query) {
@@ -14,17 +20,43 @@ app.get('/api/deezer/search', async (req, res) => {
     }
 
     try {
+        console.log(`Proxying search for: ${query}`);
         const response = await fetch(
             `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=30`
         );
+        
+        if (!response.ok) {
+            throw new Error(`Deezer API returned ${response.status}`);
+        }
+        
         const data = await response.json();
         res.json(data);
     } catch (error) {
         console.error('Proxy error:', error);
-        res.status(500).json({ error: 'Failed to fetch from Deezer' });
+        res.status(500).json({ error: 'Failed to fetch from Deezer', details: error.message });
+    }
+});
+
+// Proxy endpoint for Deezer track (for now-playing)
+app.get('/api/deezer/track/:id', async (req, res) => {
+    const trackId = req.params.id;
+    if (!trackId) {
+        return res.status(400).json({ error: 'Missing track ID' });
+    }
+
+    try {
+        const response = await fetch(`https://api.deezer.com/track/${trackId}`);
+        if (!response.ok) {
+            throw new Error(`Deezer API returned ${response.status}`);
+        }
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Track proxy error:', error);
+        res.status(500).json({ error: 'Failed to fetch track details' });
     }
 });
 
 app.listen(PORT, () => {
-    console.log(`Backend proxy running on port ${PORT}`);
+    console.log(`✅ Backend proxy running on port ${PORT}`);
 });
