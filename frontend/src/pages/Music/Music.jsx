@@ -4,7 +4,8 @@ import { supabase } from '../../supabase';
 import './Music.css';
 import musicBgImage from '../../assets/images/Music Back.jpg';
 
-const DEEZER_SEARCH_URL = 'https://api.deezer.com/search?q=';
+// 🔥 FIX: Use CORS proxy for mobile compatibility
+const DEEZER_SEARCH_URL = 'https://cors-anywhere.herokuapp.com/https://api.deezer.com/search?q=';
 
 function Music() {
   const navigate = useNavigate();
