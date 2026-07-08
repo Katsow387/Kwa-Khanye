@@ -6,8 +6,7 @@ import musicBgImage from '../../assets/images/Music Back.jpg';
 
 // 🔥 FIX: Use CORS proxy for mobile compatibility
 // 🔥 FIX: Use CORS proxy for mobile compatibility
-const DEEZER_SEARCH_URL = 'https://corsproxy.io/?https://api.deezer.com/search?q=';
-
+const DEEZER_SEARCH_URL = 'https://kraal-backend.onrender.com/api/deezer/search?q=';
 function Music() {
   const navigate = useNavigate();
   const location = useLocation();

@@ -1,12 +1,13 @@
 {
-  "name": "kraal-culture",
+  "name": "backend",
   "version": "1.0.0",
+  "description": "Proxy for Deezer API",
+  "main": "server.js",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^5.2.1",
-    "cors": "^2.8.6"
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
