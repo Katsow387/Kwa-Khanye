@@ -7,7 +7,6 @@ import { supabase } from '../supabase';
 import musicImg from '../assets/images/pot_music.png';
 import homevrImg from '../assets/images/pot_homevr.png';
 import bioscopeImg from '../assets/images/pot_bioscope.png';
-
 // ── Import local artist images ──
 import busiImage from '../assets/images/Busi.jpg';
 import bhekumuziImage from '../assets/images/Bhekumuzi.jpg';
@@ -611,3 +610,5 @@ export default function ArtistProfile() {
     </div>
   );
 }
+
+
