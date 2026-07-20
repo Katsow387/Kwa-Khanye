@@ -12,6 +12,10 @@ import SothoImg from '../assets/images/Sotho.jpg';
 import SetswanaImg from '../assets/images/Setswana.jpg';
 import NdebeleImg from '../assets/images/Ndebele.jpg';
 import BapediImg from '../assets/images/Bapedi.jpg';
+// --- Add the missing tribe images ---
+import SwatiImg from '../assets/images/swati.webp';
+import XhosaImg from '../assets/images/xhosa.webp';
+import BoereImg from '../assets/images/boere.webp';
 
 const imageMap = {
   'Zulu.jpg': ZuluImg,
@@ -21,6 +25,10 @@ const imageMap = {
   'Setswana.jpg': SetswanaImg,
   'Ndebele.jpg': NdebeleImg,
   'Bapedi.jpg': BapediImg,
+  // --- Add the missing tribes to the map ---
+  'swati.webp': SwatiImg,
+  'xhosa.webp': XhosaImg,
+  'boere.webp': BoereImg,
 };
 
 function getCultureImage(filename) {
