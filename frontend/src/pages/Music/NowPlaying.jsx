@@ -230,12 +230,24 @@ function NowPlaying() {
         </div>
       </div>
 
+<<<<<<< HEAD:frontend/src/pages/Music/NowPlaying.jsx
       {/* Calabash disc */}
+=======
+      {/* Calabash disc – use album art if available */}
+>>>>>>> e4f0b46666666ef494733554ef1e7f0b44f291d1:src/pages/Music/NowPlaying.jsx
       <div className="np-disc-area">
         <div className={`np-glow-ring${isPlaying ? ' spinning' : ''}`} />
         <div className={`np-gold-ring${isPlaying ? ' spinning' : ''}`}>
           <div className="np-disc-inner">
-            <img src={calabashImage} alt="Calabash" className="np-disc-img" />
+            {currentTrack.cover_medium || currentTrack.cover_small ? (
+              <img 
+                src={currentTrack.cover_medium || currentTrack.cover_small} 
+                alt={currentTrack.title} 
+                className="np-disc-img" 
+              />
+            ) : (
+              <img src={calabashImage} alt="Calabash" className="np-disc-img" />
+            )}
           </div>
         </div>
         {isPlaying && (

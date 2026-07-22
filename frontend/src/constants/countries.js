@@ -57,6 +57,28 @@ export const COUNTRIES = [
         symbol: '⚔️',
         image: 'Bapedi.jpg',
       },
+      // --- Added the three missing tribes ---
+      {
+        id: 'swati',
+        name: 'Swati',
+        aka: 'emaSwati',
+        symbol: '🦁',
+        image: 'swati.webp',
+      },
+      {
+        id: 'xhosa',
+        name: 'Xhosa',
+        aka: 'amaXhosa',
+        symbol: '🐃',
+        image: 'xhosa.webp',
+      },
+      {
+        id: 'boere',
+        name: 'Boere',
+        aka: 'Afrikaner',
+        symbol: '🐏',
+        image: 'boere.webp',
+      },
     ],
   },
   // Other countries – unchanged

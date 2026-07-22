@@ -19,8 +19,8 @@ const artistImageMap = {
   'bhekumuzi luthuli': bhekumuziImage,
   'gatsheni': gatsheniImage,
   'igcokama': igcokamaImage,
-  'igcokama elisha': igcokamaImage,  // 🔥 Added
-  'mthandi': igcokamaImage,          // 🔥 Added
+  'igcokama elisha': igcokamaImage,
+  'mthandi': igcokamaImage,
   'jabu khanyile': jabuKhanyileImage,
   'joseph shabalala': josephShabalalaImage,
   'khuzani mpungose': khuzaniMpungoseImage,

@@ -162,6 +162,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* Per-artist Bioscope experience, e.g. /bioscope/bhekumuzi-luthuli.
+              Matches whatever is stored in artists.bioscope_route in Supabase. */}
+          <Route
+            path="/bioscope/:artistSlug"
+            element={
+              <ProtectedRoute>
+                <Bioscope />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/artist/:artistId"
             element={
