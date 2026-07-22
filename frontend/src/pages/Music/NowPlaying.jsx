@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './NowPlaying.css';
+
+// Optional background – if missing, the page will still work
 import calabashImage from '../../assets/images/music_calabash.png';
 import nowPlayingBg from '../../assets/images/NowPlay.jpg';
 
@@ -50,7 +52,7 @@ function NowPlaying() {
 
   const currentTrack = getCurrentTrack();
 
-  // Audio events
+  // Audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -83,7 +85,7 @@ function NowPlaying() {
     };
   }, [repeat, shuffle, currentPlaylist, currentTrackIndex, shuffledIndices]);
 
-  // Load and play track (with spinning fix)
+  // Load and play track when index changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || currentTrackIndex < 0 || !currentTrack) return;
@@ -95,7 +97,7 @@ function NowPlaying() {
       audio.load();
       audio.play()
         .then(() => setIsPlaying(true))
-        .catch(() => { setIsPlaying(false); });
+        .catch(() => setIsPlaying(false));
     }
   }, [currentTrackIndex, currentTrack]);
 
@@ -181,28 +183,43 @@ function NowPlaying() {
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
+  // If no track is selected, show a fallback
   if (!currentTrack) {
     return (
-      <div className="np-page" style={{ backgroundImage: `url(${nowPlayingBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="np-overlay" style={{ background: 'rgba(8, 4, 1, 0.85)' }} />
-        <div style={{ textAlign: 'center', marginTop: '40vh', color: '#D4A855' }}>
-          No track selected. <button onClick={() => navigate('/music')} style={{ background: 'none', border: '1px solid #D4A855', color: '#D4A855', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Go back</button>
+      <div
+        className="np-page"
+        style={{
+          backgroundImage: `url(${nowPlayingBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          color: '#D4A855',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>No track selected.</p>
+          <button
+            onClick={() => navigate('/music')}
+            style={{
+              background: 'none',
+              border: '1px solid #D4A855',
+              color: '#D4A855',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+            }}
+          >
+            Go back to Music
+          </button>
         </div>
       </div>
     );
   }
-
-  // 🔥 FIXED: Back button now navigates with state
-  const handleBack = () => {
-    navigate('/music', {
-      state: {
-        playlist: currentPlaylist,
-        trackIndex: shuffle ? shuffledIndices[currentTrackIndex] : currentTrackIndex,
-        shuffle: shuffle,
-        repeat: repeat,
-      }
-    });
-  };
 
   return (
     <div
@@ -211,7 +228,7 @@ function NowPlaying() {
         backgroundImage: `url(${nowPlayingBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
       }}
     >
       <div className="np-overlay" style={{ background: 'rgba(8, 4, 1, 0.85)' }} />
@@ -219,35 +236,31 @@ function NowPlaying() {
 
       {/* Top bar */}
       <div className="np-topbar">
-        <button className="np-back-btn" onClick={handleBack}>
+        <button className="np-back-btn" onClick={() => navigate('/music')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
         <span className="np-topbar-label">Kwa Khanye · Music</span>
         <div className="np-side-controls">
-          <input type="range" className="np-volume-slider" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} />
+          <input
+            type="range"
+            className="np-volume-slider"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeChange}
+          />
         </div>
       </div>
 
-<<<<<<< HEAD:frontend/src/pages/Music/NowPlaying.jsx
       {/* Calabash disc */}
-=======
-      {/* Calabash disc – use album art if available */}
->>>>>>> e4f0b46666666ef494733554ef1e7f0b44f291d1:src/pages/Music/NowPlaying.jsx
       <div className="np-disc-area">
         <div className={`np-glow-ring${isPlaying ? ' spinning' : ''}`} />
         <div className={`np-gold-ring${isPlaying ? ' spinning' : ''}`}>
           <div className="np-disc-inner">
-            {currentTrack.cover_medium || currentTrack.cover_small ? (
-              <img 
-                src={currentTrack.cover_medium || currentTrack.cover_small} 
-                alt={currentTrack.title} 
-                className="np-disc-img" 
-              />
-            ) : (
-              <img src={calabashImage} alt="Calabash" className="np-disc-img" />
-            )}
+            <img src={calabashImage} alt="Calabash" className="np-disc-img" />
           </div>
         </div>
         {isPlaying && (
@@ -261,7 +274,7 @@ function NowPlaying() {
       {/* Track info */}
       <div className="np-track-info">
         <div className="np-track-title">{currentTrack.title}</div>
-        <div className="np-track-artist">{currentTrack.artist}</div>
+        <div className="np-track-artist">{currentTrack.artist || 'Unknown Artist'}</div>
       </div>
 
       {/* Progress + heart */}
@@ -270,11 +283,19 @@ function NowPlaying() {
           <span className="np-time">{formatTime(currentTime)}</span>
           <div className="np-progress-track">
             <div className="np-progress-fill" style={{ width: `${progressPercent}%` }} />
-            <input type="range" className="np-progress-input" min="0" max={duration || 0} value={currentTime} onChange={handleSeek} step="0.1" />
+            <input
+              type="range"
+              className="np-progress-input"
+              min="0"
+              max={duration || 0}
+              value={currentTime}
+              onChange={handleSeek}
+              step="0.1"
+            />
           </div>
           <span className="np-time">{formatTime(duration)}</span>
         </div>
-        <button className={`np-heart-btn${liked ? ' liked' : ''}`} onClick={() => setLiked(l => !l)}>
+        <button className={`np-heart-btn${liked ? ' liked' : ''}`} onClick={() => setLiked(!liked)}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
@@ -314,7 +335,7 @@ function NowPlaying() {
         </button>
       </div>
 
-      {/* Add/Remove */}
+      {/* Add/Remove row */}
       <div className="np-action-row">
         <button className="np-action-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
