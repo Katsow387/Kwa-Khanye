@@ -12,6 +12,8 @@ import Music from './pages/Music/Music';
 import NowPlaying from './pages/Music/NowPlaying';
 import HomeVR from './pages/HomeVR/HomeVR';
 import Bioscope from './pages/Bioscope/Bioscope';
+import NFTs from './pages/HomeVR/NFTs';
+import OnlineStore from './pages/HomeVR/OnlineStore';
 
 import LoginPage from './pages/Auth/LoginPage';
 import SignUpPage from './pages/Auth/SignUpPage';
@@ -26,11 +28,9 @@ export const useSession = () => useContext(SessionContext);
 
 function ProtectedRoute({ children }) {
   const session = useSession();
-
   if (!session) {
     return <Navigate to="/login" replace />;
   }
-
   return children;
 }
 
@@ -43,7 +43,6 @@ function App() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
       setSession(session);
       setLoading(false);
     };
@@ -91,7 +90,37 @@ function App() {
         {/* Home page – NO Layout wrapper, it renders its own header */}
         <Route path="/" element={<HomePage />} />
 
-        {/* Protected pages with Layout (which renders the header) */}
+        {/* ============================================================
+            Protected pages WITHOUT Layout (full‑screen, custom headers)
+            ============================================================ */}
+        <Route
+          path="/homevr"
+          element={
+            <ProtectedRoute>
+              <HomeVR />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/nft"
+          element={
+            <ProtectedRoute>
+              <NFTs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/store"
+          element={
+            <ProtectedRoute>
+              <OnlineStore />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ============================================================
+            Protected pages WITH Layout (global header)
+            ============================================================ */}
         <Route element={<Layout session={session} />}>
           <Route
             path="/country/:countryId"
@@ -122,14 +151,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <NowPlaying />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/homevr"
-            element={
-              <ProtectedRoute>
-                <HomeVR />
               </ProtectedRoute>
             }
           />

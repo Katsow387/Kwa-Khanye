@@ -21,15 +21,20 @@ function Music() {
   const searchInputRef = useRef(null);
 
   // ── Read artist param from URL ──
+  // NOTE: this only sets searchQuery now. The debounced effect below
+  // (keyed on searchQuery) is solely responsible for firing the search.
+  // Previously this called performSearch() directly AND changed
+  // searchQuery, which triggered the debounced effect too — causing
+  // the same query to be fetched twice (or three times in React
+  // StrictMode dev), which was hammering the Deezer proxy and
+  // surfacing as 500s.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const artistParam = params.get('artist');
     if (artistParam) {
       setSearchQuery(artistParam);
-      performSearch(artistParam);
     } else if (!searchQuery) {
       setSearchQuery(DEFAULT_SEARCH);
-      performSearch(DEFAULT_SEARCH);
     }
   }, [location]);
 
@@ -75,7 +80,7 @@ function Music() {
     }
   };
 
-  // ── Debounced search ──
+  // ── Debounced search (single source of truth for firing searches) ──
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     if (!searchQuery.trim()) { setSearchResults([]); return; }
@@ -90,15 +95,6 @@ function Music() {
     const idx = searchResults.findIndex(t => t.id === track.id);
     if (idx !== -1) {
       setCurrentTrackId(track.id);
-      // We need to pass the full playlist with all fields (for NowPlaying)
-      // but we only stored title, duration, preview, cover_small, id.
-      // NowPlaying expects artist, album etc. So we need to re-fetch or store full data.
-      // To avoid complexity, we can store the full data from the API response before mapping.
-      // But we have already mapped. We'll adjust: store the original data in a separate state.
-      // Better: store full tracks in searchResults, but only display title and duration.
-      // Let's modify: searchResults will hold full track objects, but we only render title and duration.
-      // I'll change the mapping to keep all fields, but only show title/duration.
-      // Re-fetch or use the original data. I'll keep full data in state.
       navigate('/now-playing', {
         state: {
           playlist: searchResults, // full data

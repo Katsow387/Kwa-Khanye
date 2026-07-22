@@ -1,4 +1,3 @@
-// ArtistProfile.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
@@ -7,6 +6,7 @@ import { supabase } from '../supabase';
 import musicImg from '../assets/images/pot_music.png';
 import homevrImg from '../assets/images/pot_homevr.png';
 import bioscopeImg from '../assets/images/pot_bioscope.png';
+
 // ── Import local artist images ──
 import busiImage from '../assets/images/Busi.jpg';
 import bhekumuziImage from '../assets/images/Bhekumuzi.jpg';
@@ -23,8 +23,8 @@ const artistImageMap = {
   'bhekumuzi luthuli': bhekumuziImage,
   'gatsheni': gatsheniImage,
   'igcokama': igcokamaImage,
-  'igcokama elisha': igcokamaImage,  // 🔥 Added
-  'mthandi': igcokamaImage,          // 🔥 Added
+  'igcokama elisha': igcokamaImage,
+  'mthandi': igcokamaImage,
   'jabu khanyile': jabuKhanyileImage,
   'joseph shabalala': josephShabalalaImage,
   'khuzani mpungose': khuzaniMpungoseImage,
@@ -443,8 +443,8 @@ export default function ArtistProfile() {
     {
       icon: homevrImg,
       title: 'Home VR',
-      disabled: !artist.has_vr,
-      comingSoon: !artist.has_vr,
+      disabled: false,                 // always enabled
+      comingSoon: false,               // never show "Coming Soon"
       onClick: () => navigate(artist.vr_route || '/homevr'),
     },
     {
@@ -496,7 +496,7 @@ export default function ArtistProfile() {
         </div>
       </div>
 
-      {/* Body (same as before) */}
+      {/* Body */}
       <div style={S.body}>
         {/* Social Connect buttons */}
         {(artist.instagram || artist.spotify_url || artist.youtube_url) && (
@@ -610,5 +610,3 @@ export default function ArtistProfile() {
     </div>
   );
 }
-
-

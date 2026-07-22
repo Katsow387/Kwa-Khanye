@@ -308,8 +308,38 @@ export default function NFTs() {
   return (
     <div style={S.page}>
 
-      {/* ══ HEADER — separated from content ══ */}
+      {/* ══ HEADER — with Back to VR button ══ */}
       <header style={S.header}>
+        {/* Back button */}
+        <button
+          onClick={() => navigate('/homevr')}
+          style={{
+            position: 'absolute',
+            top: '1.5rem',
+            left: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: 'rgba(10,6,3,0.7)',
+            border: '1px solid rgba(198,122,52,0.4)',
+            borderRadius: '50px',
+            padding: '0.3rem 1rem',
+            color: '#f4d090',
+            fontSize: '0.8rem',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            zIndex: 10,
+            transition: 'border-color 0.2s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(198,122,52,0.8)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(198,122,52,0.4)'}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back to VR
+        </button>
+
         <div style={S.headerGlow} />
         <div style={S.headerWatermark}>NFT GALLERY</div>
         <div style={{ position: 'relative', zIndex: 1 }}>
