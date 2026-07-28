@@ -12,6 +12,9 @@ import Music from './pages/Music/Music';
 import NowPlaying from './pages/Music/NowPlaying';
 import HomeVR from './pages/HomeVR/HomeVR';
 import Bioscope from './pages/Bioscope/Bioscope';
+import Biographer from './pages/Bioscope/Biographer';
+import MusicVideos from './pages/Bioscope/MusicVideos';
+import Albums from './pages/Bioscope/Albums';
 
 import LoginPage from './pages/Auth/LoginPage';
 import SignUpPage from './pages/Auth/SignUpPage';
@@ -90,6 +93,42 @@ function App() {
 
         {/* Home page – NO Layout wrapper, it renders its own header */}
         <Route path="/" element={<HomePage />} />
+
+        {/* ============================================================ */}
+        {/* BIOSCOPE ROUTES - MOVED OUTSIDE LAYOUT TO FIX NAVIGATION    */}
+        {/* ============================================================ */}
+        <Route
+          path="/bioscope/biography/:artistId"
+          element={
+            <ProtectedRoute>
+              <Biographer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bioscope/biography"
+          element={
+            <ProtectedRoute>
+              <Biographer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bioscope/music-videos"
+          element={
+            <ProtectedRoute>
+              <MusicVideos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bioscope/albums"
+          element={
+            <ProtectedRoute>
+              <Albums />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected pages with Layout (which renders the header) */}
         <Route element={<Layout session={session} />}>
