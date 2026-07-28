@@ -1,0 +1,208 @@
+﻿.customer-dashboard {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #f4d090;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.customer-dashboard h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  color: #f4d090;
+  margin-bottom: 0.5rem;
+}
+
+.customer-dashboard > p {
+  color: rgba(244, 208, 144, 0.7);
+  margin-bottom: 2rem;
+}
+
+.dashboard-section {
+  margin-top: 3rem;
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  color: #f4d090;
+  border-bottom: 1px solid rgba(198, 122, 52, 0.2);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  background: rgba(198, 122, 52, 0.2);
+  border: 1px solid rgba(198, 122, 52, 0.3);
+  border-radius: 50px;
+  padding: 0.2rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-filter {
+  background: none;
+  border: none;
+  color: #f4d090;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 0.2rem;
+}
+
+.country-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.country-card {
+  background: rgba(20, 10, 5, 0.85);
+  border: 1px solid rgba(198, 122, 52, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.country-card:hover {
+  border-color: rgba(198, 122, 52, 0.5);
+}
+
+.country-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+.country-flag {
+  width: 40px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(198, 122, 52, 0.3);
+}
+
+.country-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: #f4d090;
+  flex: 1;
+}
+
+.country-code {
+  font-size: 0.8rem;
+  color: rgba(244, 208, 144, 0.4);
+}
+
+.culture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(198, 122, 52, 0.15);
+}
+
+.culture-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(198, 122, 52, 0.15);
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.culture-card:hover {
+  background: rgba(198, 122, 52, 0.1);
+  border-color: rgba(198, 122, 52, 0.5);
+  transform: translateY(-2px);
+}
+
+.culture-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(198, 122, 52, 0.3);
+}
+
+.culture-symbol {
+  font-size: 2rem;
+  line-height: 60px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 50%;
+}
+
+.culture-name {
+  font-weight: 600;
+  color: #f4d090;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.culture-aka {
+  font-size: 0.7rem;
+  color: rgba(244, 208, 144, 0.4);
+}
+
+.content-category {
+  margin-bottom: 2rem;
+}
+
+.content-category h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: #c67a34;
+  margin-bottom: 0.5rem;
+}
+
+.content-category ul {
+  list-style: none;
+  padding: 0;
+}
+
+.content-category li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(198, 122, 52, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta-badge {
+  font-size: 0.7rem;
+  color: rgba(244, 208, 144, 0.5);
+  background: rgba(0,0,0,0.3);
+  padding: 0.1rem 0.5rem;
+  border-radius: 50px;
+}
+
+.content-category p {
+  color: rgba(244, 208, 144, 0.5);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .customer-dashboard { padding: 1rem; }
+  .country-card { padding: 0.75rem 1rem; }
+  .culture-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  .culture-image, .culture-symbol { width: 48px; height: 48px; font-size: 1.6rem; line-height: 48px; }
+}

@@ -1,0 +1,243 @@
+﻿/* ──────────────────────────────────────────────────────────────
+   ArtistApplicationForm.css — Kwa Khanye Artist Application
+   ────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+.application-form {
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #f4d090;
+  font-family: 'DM Sans', sans-serif;
+  background: radial-gradient(ellipse at 50% 30%, #1a0d06 0%, #0e0603 100%);
+  position: relative;
+}
+
+.application-form::before {
+  content: 'KWA KHANYE';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 700;
+  color: #e8a84c;
+  opacity: 0.025;
+  letter-spacing: 0.3em;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.application-form form {
+  position: relative;
+  z-index: 1;
+  background: rgba(20, 10, 5, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 122, 62, 0.3);
+  border-radius: 20px;
+  padding: 2.5rem 2.5rem 3rem;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(232, 168, 76, 0.05) inset;
+}
+
+.application-form form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 168, 76, 0.6), transparent);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(200, 122, 62, 0.15);
+}
+
+.form-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(232, 168, 76, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.form-header-text h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: #f5e2c0;
+  margin: 0;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.form-header-text p {
+  font-size: 0.9rem;
+  color: rgba(245, 230, 211, 0.6);
+  margin: 0.2rem 0 0;
+  font-weight: 300;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(232, 168, 76, 0.7);
+  margin-bottom: 0.4rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(26, 14, 6, 0.7);
+  border: 1px solid rgba(200, 122, 62, 0.3);
+  border-radius: 10px;
+  color: #f5e6d3;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: rgba(232, 168, 76, 0.7);
+  box-shadow: 0 0 0 3px rgba(232, 168, 76, 0.12);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(245, 230, 211, 0.25);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.social-links-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .social-links-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dropzone {
+  padding: 2rem 1.5rem;
+  border: 2px dashed rgba(200, 122, 62, 0.4);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(26, 14, 6, 0.3);
+}
+
+.dropzone:hover {
+  border-color: rgba(232, 168, 76, 0.7);
+  background: rgba(232, 168, 76, 0.05);
+}
+
+.dropzone p {
+  margin: 0;
+  color: rgba(245, 230, 211, 0.5);
+  font-size: 0.9rem;
+}
+
+.form-submit-btn {
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #8B6914, #c67a34);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(200, 122, 62, 0.25);
+  margin-top: 0.5rem;
+}
+
+.form-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(200, 122, 62, 0.4);
+  background: linear-gradient(135deg, #a07818, #d4883e);
+}
+
+.form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.message {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.message.success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #34d399;
+}
+
+.message.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+@media (max-width: 768px) {
+  .application-form {
+    padding: 1rem 0.75rem 3rem;
+  }
+  .application-form form {
+    padding: 1.5rem 1.25rem 2rem;
+  }
+  .form-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .application-form form {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+}
