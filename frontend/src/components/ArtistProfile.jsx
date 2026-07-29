@@ -7,6 +7,7 @@ import { supabase } from '../supabase';
 import musicImg from '../assets/images/pot_music.png';
 import homevrImg from '../assets/images/pot_homevr.png';
 import bioscopeImg from '../assets/images/pot_bioscope.png';
+
 // ── Import local artist images ──
 import busiImage from '../assets/images/Busi.jpg';
 import bhekumuziImage from '../assets/images/Bhekumuzi.jpg';
@@ -16,6 +17,9 @@ import jabuKhanyileImage from '../assets/images/Jabu Khanyile.jpg';
 import josephShabalalaImage from '../assets/images/Joseph Shabalala.jpg';
 import khuzaniMpungoseImage from '../assets/images/Khuzani Mpungose.jpg';
 import ladysmithImage from '../assets/images/Ladysmith.jpg';
+
+// Background
+import backgroundImage from '../assets/images/Music Back.jpg';
 
 // ── Image mapping by artist name ──
 const artistImageMap = {
@@ -37,14 +41,10 @@ function getArtistImage(artistName) {
   return artistImageMap[lowerName] || null;
 }
 
-// Background
-import backgroundImage from '../assets/images/NowPlay.jpg';
-
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S = {
   page: {
     minHeight: '100vh',
-    height: '100vh',
     fontFamily: "'DM Sans', sans-serif",
     color: '#f4d090',
     position: 'relative',
@@ -54,7 +54,6 @@ const S = {
     backgroundAttachment: 'fixed',
     backgroundColor: 'rgba(10, 6, 3, 0.85)',
     backgroundBlendMode: 'multiply',
-    overflowY: 'auto',
   },
 
   backBtn: {
@@ -181,6 +180,7 @@ const S = {
     background: 'rgba(198,122,52,0.15)',
   },
 
+  // ─── Bio with vertical divider and watermark ──────────────────────────
   bioWrapper: {
     position: 'relative',
     marginBottom: '2.5rem',
@@ -210,6 +210,7 @@ const S = {
     zIndex: 1,
   },
 
+  // ─── Social Connect buttons (gold pill) ──────────────────────────────
   socialRow: {
     display: 'flex',
     gap: '0.75rem',
@@ -235,6 +236,7 @@ const S = {
     color: '#1a0f0a',
   },
 
+  // ─── Hub cards (elevated containers) ──────────────────────────────────
   hubGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -359,6 +361,8 @@ export default function ArtistProfile() {
   const [artist, setArtist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [fallbackBio, setFallbackBio] = useState('');
+  const [wikiSource, setWikiSource] = useState('');
 
   // Auth guard
   useEffect(() => {
@@ -381,9 +385,63 @@ export default function ArtistProfile() {
 
       if (err || !data) {
         setError('Artist not found.');
-      } else {
-        setArtist(data);
+        setLoading(false);
+        return;
       }
+
+      setArtist(data);
+
+      // Build the bio in order of preference: artists.bio -> bioscope table
+      // -> Wikipedia. We use a local variable (not state) to chain these
+      // checks, since setState is async and we can't read a fresh state
+      // value in the same function tick.
+      let bioText = data.bio || '';
+
+      // The artists.bio column is empty for most/all artists — the actual
+      // biography text (e.g. Bhekumuzi Luthuli's career history) was
+      // inserted into a separate `bioscope` table instead, with no
+      // artist_id column linking it back. It's only findable by matching
+      // the artist's name against bioscope.title, so fall back to that
+      // lookup whenever the artist row itself has no bio.
+      if (!bioText && data.name) {
+        const { data: bioRows, error: bioErr } = await supabase
+          .from('bioscope')
+          .select('description')
+          .eq('type', 'Biography')
+          .ilike('title', `%${data.name}%`)
+          .limit(1);
+
+        if (bioErr) {
+          console.error('Bioscope biography lookup error:', bioErr);
+        } else if (bioRows && bioRows.length > 0) {
+          bioText = bioRows[0].description || '';
+        }
+      }
+
+      // Still nothing? Pull a summary straight from Wikipedia. Their REST
+      // API is public, needs no key, and allows CORS from the browser.
+      if (!bioText && data.name) {
+        try {
+          const wikiRes = await fetch(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(data.name)}`
+          );
+          if (wikiRes.ok) {
+            const wikiData = await wikiRes.json();
+            // "disambiguation" pages have no real extract — skip those
+            if (wikiData.extract && wikiData.type !== 'disambiguation') {
+              bioText = wikiData.extract;
+              setWikiSource(
+                wikiData.content_urls?.desktop?.page ||
+                `https://en.wikipedia.org/wiki/${encodeURIComponent(data.name)}`
+              );
+            }
+          }
+        } catch (wikiErr) {
+          console.error('Wikipedia lookup error:', wikiErr);
+        }
+      }
+
+      setFallbackBio(bioText);
       setLoading(false);
     };
     fetchArtist();
@@ -438,21 +496,21 @@ export default function ArtistProfile() {
       title: 'Music',
       disabled: !artist.has_music,
       comingSoon: !artist.has_music,
-      onClick: () => navigate(`/music?artist=${encodeURIComponent(artist.name)}`),
+      onClick: () => navigate(artist.music_route || `/music?artist=${encodeURIComponent(artist.name)}`),
     },
     {
       icon: homevrImg,
       title: 'Home VR',
       disabled: !artist.has_vr,
       comingSoon: !artist.has_vr,
-      onClick: () => navigate(artist.vr_route || '/homevr'),
+      onClick: () => navigate(artist.vr_route || `/homevr?artist=${encodeURIComponent(artist.name)}`),
     },
     {
       icon: bioscopeImg,
       title: 'Bioscope',
       disabled: !artist.has_bioscope,
       comingSoon: !artist.has_bioscope,
-      onClick: () => navigate(artist.bioscope_route || '/bioscope'),
+      onClick: () => navigate(artist.bioscope_route || `/bioscope?artist=${encodeURIComponent(artist.name)}`),
     },
   ];
 
@@ -496,9 +554,9 @@ export default function ArtistProfile() {
         </div>
       </div>
 
-      {/* Body (same as before) */}
+      {/* Body */}
       <div style={S.body}>
-        {/* Social Connect buttons */}
+        {/* Social Connect buttons – gold pill style */}
         {(artist.instagram || artist.spotify_url || artist.youtube_url) && (
           <>
             <div style={S.sectionLabel}>
@@ -564,8 +622,8 @@ export default function ArtistProfile() {
           </>
         )}
 
-        {/* About section */}
-        {artist.bio && (
+        {/* About section – with vertical divider & watermark quote */}
+        {(artist.bio || fallbackBio) && (
           <>
             <div style={S.sectionLabel}>
               <span>About</span>
@@ -573,12 +631,28 @@ export default function ArtistProfile() {
             </div>
             <div style={S.bioWrapper}>
               <span style={S.bioQuoteWatermark}>“</span>
-              <div style={S.bioCard}>{artist.bio}</div>
+              <div style={S.bioCard}>{artist.bio || fallbackBio}</div>
+              {wikiSource && (
+                <a
+                  href={wikiSource}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: '0.6rem',
+                    fontSize: '0.7rem',
+                    color: 'rgba(198,122,52,0.7)',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Source: Wikipedia
+                </a>
+              )}
             </div>
           </>
         )}
 
-        {/* Explore the World – hub cards */}
+        {/* Explore the World – elevated hub cards */}
         <div style={S.sectionLabel}>
           <span>Explore {artist.name}'s World</span>
           <div style={S.sectionLabelLine} />
