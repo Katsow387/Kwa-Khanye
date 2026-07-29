@@ -8,6 +8,13 @@ import CountryPage from './components/CountryPage';
 import ArtistsPage from './components/ArtistsPage';
 import ArtistProfile from './components/ArtistProfile';
 
+import Music from './pages/Music/Music';
+import NowPlaying from './pages/Music/NowPlaying';
+import HomeVR from './pages/HomeVR/HomeVR';
+import Bioscope from './pages/Bioscope/Bioscope';
+import NFTs from './pages/HomeVR/NFTs';
+import OnlineStore from './pages/HomeVR/OnlineStore';
+
 import LoginPage from './pages/Auth/LoginPage';
 import SignUpPage from './pages/Auth/SignUpPage';
 import {
@@ -19,7 +26,7 @@ import {
 import ArtistDashboard from './pages/ArtistDashboard/ArtistDashboard';
 import CustomerDashboard from './pages/CustomerDashboard/CustomerDashboard';
 import ArtistApplicationForm from './pages/ArtistApplication/ArtistApplicationForm';
-import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard/AdminDashboard';   // ← only ONE
 
 const SessionContext = createContext(null);
 
@@ -86,12 +93,37 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Home page – public landing */}
+        {/* Home page – NO Layout wrapper */}
         <Route path="/" element={<HomePage />} />
+
+        {/* Protected pages WITHOUT Layout (full‑screen, custom headers) */}
+        <Route
+          path="/homevr"
+          element={
+            <ProtectedRoute>
+              <HomeVR />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/nft"
+          element={
+            <ProtectedRoute>
+              <NFTs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/store"
+          element={
+            <ProtectedRoute>
+              <OnlineStore />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected pages WITH Layout (global header) */}
         <Route element={<Layout session={session} />}>
-          {/* Country / Culture / Artist browsing – still needed */}
           <Route
             path="/country/:countryId"
             element={
@@ -109,6 +141,38 @@ function App() {
             }
           />
           <Route
+            path="/music"
+            element={
+              <ProtectedRoute>
+                <Music />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/now-playing"
+            element={
+              <ProtectedRoute>
+                <NowPlaying />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bioscope"
+            element={
+              <ProtectedRoute>
+                <Bioscope />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bioscope/:artistSlug"
+            element={
+              <ProtectedRoute>
+                <Bioscope />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/artist/:artistId"
             element={
               <ProtectedRoute>
@@ -117,7 +181,7 @@ function App() {
             }
           />
 
-          {/* ─── DASHBOARDS ─────────────────────────────────────── */}
+          {/* ─── NEW ROUTES ─────────────────────────────────────── */}
           <Route
             path="/artist-dashboard"
             element={
@@ -152,7 +216,6 @@ function App() {
           />
         </Route>
 
-        {/* Old pages are removed (Music, NowPlaying, HomeVR, Bioscope, NFTs, OnlineStore) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SessionContext.Provider>

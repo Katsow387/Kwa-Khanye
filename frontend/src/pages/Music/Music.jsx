@@ -35,6 +35,13 @@ function Music() {
   const searchInputRef = useRef(null);
 
   // ── Read artist param and mode from URL ──
+  // NOTE: this only sets searchQuery now. The debounced effect below
+  // (keyed on searchQuery) is solely responsible for firing the search.
+  // Previously this called performSearch() directly AND changed
+  // searchQuery, which triggered the debounced effect too — causing
+  // the same query to be fetched twice (or three times in React
+  // StrictMode dev), which was hammering the Deezer proxy and
+  // surfacing as 500s.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const artistParam = params.get('artist');
@@ -201,7 +208,7 @@ function Music() {
     }
   };
 
-  // ── Debounced search ──
+  // ── Debounced search (single source of truth for firing searches) ──
   useEffect(() => {
     // Don't run search if we're in all-artists mode
     if (allArtistsMode) return;
@@ -257,7 +264,7 @@ function Music() {
     const idx = searchResults.findIndex(t => t.id === track.id);
     if (idx !== -1) {
       if (audioRef.current) audioRef.current.pause();
-      
+
       // If it's a video, navigate to video player
       if (track.isVideo && track.videoUrl) {
         navigate('/video-player', {
@@ -272,13 +279,13 @@ function Music() {
         });
         return;
       }
-      
+
       // If it's an album, navigate to album view
       if (track.isAlbum && track.albumId) {
         navigate(`/album/${track.albumId}`);
         return;
       }
-      
+
       // Regular track - go to now playing
       navigate('/now-playing', {
         state: {

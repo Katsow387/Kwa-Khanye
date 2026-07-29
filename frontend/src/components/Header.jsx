@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { LogOut } from 'lucide-react';
 
@@ -56,7 +56,25 @@ export default function Header({ session }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const displayName = getDisplayName(session);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!session?.user?.id) return;
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
+      setUserRole(data?.role || null);
+    };
+    fetchRole();
+  }, [session]);
 
   const handleAvatarUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -76,6 +94,7 @@ export default function Header({ session }) {
       const user = session?.user;
       if (!user) throw new Error('Not authenticated');
       const fileExt = file.name.split('.').pop();
+      // ✅ FIXED: correct template literal with backticks
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error } = await supabase.storage
@@ -121,12 +140,19 @@ export default function Header({ session }) {
       <nav className="nav-container">
         <ul className="nav-list">
           {session ? (
-            <li>
-              <button onClick={handleSignOut} disabled={signingOut} className="nav-action-btn logout-btn">
-                <LogOut size={13} strokeWidth={2.5} />
-                <span className="nav-label">Logout</span>
-              </button>
-            </li>
+            <>
+              <li>
+                <Link to="/customer-dashboard" className="auth-nav-link" style={{ fontSize: '0.78rem' }}>
+                  🏠 Home
+                </Link>
+              </li>
+              <li>
+                <button onClick={handleSignOut} disabled={signingOut} className="nav-action-btn logout-btn">
+                  <LogOut size={13} strokeWidth={2.5} />
+                  <span className="nav-label">Logout</span>
+                </button>
+              </li>
+            </>
           ) : (
             <li style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: '0.5rem' }}>
               <a href="/login" className="auth-nav-link">Sign In</a>
@@ -155,6 +181,21 @@ export default function Header({ session }) {
               style={{ display: 'none' }} 
             />
           </div>
+
+          <div style={{ padding: '0.2rem 1rem 0.4rem', borderBottom: '1px solid rgba(200,122,62,0.12)' }}>
+            <Link to="/customer-dashboard" className="dropdown-action-item" style={{ display: 'block', padding: '0.4rem 0' }}>
+              🏠 Home (Customer View)
+            </Link>
+            <Link to="/artist-dashboard" className="dropdown-action-item" style={{ display: 'block', padding: '0.4rem 0' }}>
+              🎨 Artist Dashboard
+            </Link>
+            {(userRole === 'admin' || session?.user?.email === 'admin@gmail.com') && (
+              <Link to="/admin-dashboard" className="dropdown-action-item" style={{ display: 'block', padding: '0.4rem 0' }}>
+                ⚙️ Admin Dashboard
+              </Link>
+            )}
+          </div>
+
           <button onClick={handleSignOut} disabled={signingOut} className="dropdown-signout-btn">
             {signingOut ? 'Signing out…' : '↪ Sign Out'}
           </button>

@@ -13,6 +13,8 @@
         "lucide-react": "^1.21.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
+        "react-dropzone": "^19.1.1",
+        "react-hook-form": "^7.83.0",
         "react-router-dom": "^7.15.1"
     },
     "devDependencies": {
