@@ -8,7 +8,6 @@ import CountryPage from './components/CountryPage';
 import ArtistsPage from './components/ArtistsPage';
 import ArtistProfile from './components/ArtistProfile';
 
-
 import Music from './pages/Music/Music';
 import NowPlaying from './pages/Music/NowPlaying';
 import HomeVR from './pages/HomeVR/HomeVR';
@@ -16,7 +15,6 @@ import Bioscope from './pages/Bioscope/Bioscope';
 import Biographer from './pages/Bioscope/Biographer';
 import MusicVideos from './pages/Bioscope/MusicVideos';
 import Albums from './pages/Bioscope/Albums';
-
 
 import LoginPage from './pages/Auth/LoginPage';
 import SignUpPage from './pages/Auth/SignUpPage';
@@ -99,9 +97,6 @@ function App() {
         {/* Home page – public landing */}
         <Route path="/" element={<HomePage />} />
 
-
-        {/* Protected pages WITH Layout (global header) */}
-
         {/* ============================================================ */}
         {/* BIOSCOPE ROUTES - MOVED OUTSIDE LAYOUT TO FIX NAVIGATION    */}
         {/* ============================================================ */}
@@ -139,9 +134,54 @@ function App() {
         />
 
         {/* Protected pages with Layout (which renders the header) */}
-
         <Route element={<Layout session={session} />}>
-          {/* Country / Culture / Artist browsing – still needed */}
+          {/* Music Pages */}
+          <Route
+            path="/music"
+            element={
+              <ProtectedRoute>
+                <Music />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/now-playing"
+            element={
+              <ProtectedRoute>
+                <NowPlaying />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* VR Pages */}
+          <Route
+            path="/homevr"
+            element={
+              <ProtectedRoute>
+                <HomeVR />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Bioscope Main Page */}
+          <Route
+            path="/bioscope"
+            element={
+              <ProtectedRoute>
+                <Bioscope />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bioscope/:artistSlug"
+            element={
+              <ProtectedRoute>
+                <Bioscope />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Country / Culture / Artist browsing */}
           <Route
             path="/country/:countryId"
             element={
@@ -202,7 +242,7 @@ function App() {
           />
         </Route>
 
-        {/* Old pages are removed (Music, NowPlaying, HomeVR, Bioscope, NFTs, OnlineStore) */}
+        {/* Catch-all route - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SessionContext.Provider>
