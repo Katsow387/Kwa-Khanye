@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
 
+/* ==================== ROOT STYLES ==================== */
 .bsc-root {
   min-height: 100vh;
   background-size: cover;
@@ -11,6 +12,7 @@
   padding-bottom: 4rem;
 }
 
+/* ==================== HERO SECTION ==================== */
 .bsc-hero {
   position: relative;
   padding: 4rem 2rem 3rem;
@@ -38,8 +40,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(198,122,52,0.12);
-  border: 1px solid rgba(198,122,52,0.3);
+  background: rgba(198, 122, 52, 0.12);
+  border: 1px solid rgba(198, 122, 52, 0.3);
   border-radius: 50px;
   padding: 0.3rem 1rem;
   font-size: 0.75rem;
@@ -62,7 +64,7 @@
 }
 
 .bsc-hero p {
-  color: rgba(244,208,144,0.85);
+  color: rgba(244, 208, 144, 0.85);
   font-size: 1rem;
   font-weight: 300;
   max-width: 480px;
@@ -70,6 +72,7 @@
   line-height: 1.7;
 }
 
+/* ==================== SEARCH ==================== */
 .bsc-search-wrap {
   max-width: 480px;
   margin: 2rem auto 0;
@@ -81,13 +84,13 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(244,208,144,0.35);
+  color: rgba(244, 208, 144, 0.35);
 }
 
 .bsc-search {
   width: 100%;
-  background: rgba(28,15,10,0.8);
-  border: 1px solid rgba(198,122,52,0.3);
+  background: rgba(28, 15, 10, 0.8);
+  border: 1px solid rgba(198, 122, 52, 0.3);
   border-radius: 50px;
   padding: 0.75rem 1rem 0.75rem 2.75rem;
   color: #f4d090;
@@ -99,14 +102,15 @@
 }
 
 .bsc-search::placeholder {
-  color: rgba(244,208,144,0.5);
+  color: rgba(244, 208, 144, 0.5);
 }
 
 .bsc-search:focus {
-  border-color: rgba(198,122,52,0.7);
-  box-shadow: 0 0 0 3px rgba(198,122,52,0.1);
+  border-color: rgba(198, 122, 52, 0.7);
+  box-shadow: 0 0 0 3px rgba(198, 122, 52, 0.1);
 }
 
+/* ==================== TABS ==================== */
 .bsc-tabs {
   display: flex;
   justify-content: center;
@@ -116,12 +120,13 @@
 }
 
 .bsc-tab {
-  background: rgba(20,10,6,0.7);
+  background: rgba(20, 10, 6, 0.7);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(198,122,52,0.3);
+  border: 1px solid rgba(198, 122, 52, 0.3);
   border-radius: 50px;
   padding: 0.45rem 1.25rem;
-  color: rgba(244,208,144,0.8);
+  color: rgba(244, 208, 144, 0.8);
   font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
@@ -130,9 +135,9 @@
 }
 
 .bsc-tab:hover {
-  border-color: rgba(198,122,52,0.7);
+  border-color: rgba(198, 122, 52, 0.7);
   color: #f4d090;
-  background: rgba(198,122,52,0.2);
+  background: rgba(198, 122, 52, 0.2);
 }
 
 .bsc-tab.active {
@@ -142,6 +147,7 @@
   font-weight: 500;
 }
 
+/* ==================== STATS ==================== */
 .bsc-stats {
   display: flex;
   justify-content: center;
@@ -152,7 +158,8 @@
 
 .bsc-stat {
   text-align: center;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -168,12 +175,13 @@
 
 .bsc-stat-label {
   font-size: 0.75rem;
-  color: rgba(244,208,144,0.8);
+  color: rgba(244, 208, 144, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 0.25rem;
 }
 
+/* ==================== GRID & CARDS ==================== */
 .bsc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -184,9 +192,10 @@
 }
 
 .bsc-card {
-  background: rgba(20,10,6,0.85);
+  background: rgba(20, 10, 6, 0.85);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(198,122,52,0.3);
+  border: 1px solid rgba(198, 122, 52, 0.3);
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
@@ -195,8 +204,8 @@
 
 .bsc-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(198,122,52,0.7);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(198,122,52,0.15);
+  border-color: rgba(198, 122, 52, 0.7);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(198, 122, 52, 0.15);
 }
 
 .bsc-card-thumb {
@@ -225,7 +234,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-radius: 50px;
   padding: 0.25rem 0.65rem;
@@ -257,7 +267,7 @@
 
 .bsc-card-desc {
   font-size: 0.83rem;
-  color: rgba(244,208,144,0.7);
+  color: rgba(244, 208, 144, 0.7);
   line-height: 1.6;
   margin: 0 0 1rem;
   display: -webkit-box;
@@ -274,7 +284,7 @@
 
 .bsc-card-year {
   font-size: 0.78rem;
-  color: rgba(244,208,144,0.5);
+  color: rgba(244, 208, 144, 0.5);
   letter-spacing: 0.05em;
 }
 
@@ -282,8 +292,8 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(198,122,52,0.5);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(198, 122, 52, 0.5);
   border-radius: 50px;
   padding: 0.3rem 0.85rem;
   color: #c67a34;
@@ -294,22 +304,28 @@
 }
 
 .bsc-card-btn:hover {
-  background: rgba(198,122,52,0.25);
+  background: rgba(198, 122, 52, 0.25);
   border-color: #c67a34;
 }
 
+/* ==================== EMPTY STATE ==================== */
 .bsc-empty {
   text-align: center;
   padding: 5rem 2rem;
-  color: rgba(244,208,144,0.6);
-  background: rgba(0,0,0,0.4);
+  color: rgba(244, 208, 144, 0.6);
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border-radius: 20px;
   margin: 2rem;
 }
 
-.bsc-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.bsc-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
 
+/* ==================== LOADING ==================== */
 .bsc-loading {
   display: flex;
   justify-content: center;
@@ -326,18 +342,32 @@
   animation: bscPulse 1.2s ease-in-out infinite;
 }
 
-.bsc-dot:nth-child(2) { animation-delay: 0.2s; }
-.bsc-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bscPulse {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
+.bsc-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.bsc-dot:nth-child(3) {
+  animation-delay: 0.4s;
 }
 
+@keyframes bscPulse {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ==================== MODAL ==================== */
 .bsc-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0, 0, 0, 0.85);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   z-index: 1000;
   display: flex;
@@ -347,11 +377,18 @@
   animation: bscFadeIn 0.2s ease;
 }
 
-@keyframes bscFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bscFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 .bsc-modal {
   background: #140a05;
-  border: 1px solid rgba(198,122,52,0.5);
+  border: 1px solid rgba(198, 122, 52, 0.5);
   border-radius: 20px;
   width: 100%;
   max-width: 480px;
@@ -361,15 +398,21 @@
 }
 
 @keyframes bscSlideUp {
-  from { transform: translateY(24px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .bsc-modal-close {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   border: none;
   color: #f4d090;
   width: 32px;
@@ -390,9 +433,21 @@
   justify-content: center;
 }
 
-.bsc-modal-img { width: 100%; height: 100%; object-fit: cover; }
-.bsc-modal-symbol { font-size: 5rem; opacity: 0.4; }
-.bsc-modal-body { padding: 1.75rem; }
+.bsc-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bsc-modal-symbol {
+  font-size: 5rem;
+  opacity: 0.4;
+}
+
+.bsc-modal-body {
+  padding: 1.75rem;
+}
+
 .bsc-modal-type {
   display: flex;
   align-items: center;
@@ -403,6 +458,7 @@
   letter-spacing: 0.1em;
   margin-bottom: 0.75rem;
 }
+
 .bsc-modal-title {
   font-family: 'Playfair Display', serif;
   font-size: 1.6rem;
@@ -411,17 +467,20 @@
   margin: 0 0 0.35rem;
   line-height: 1.2;
 }
+
 .bsc-modal-artist {
-  color: rgba(244,208,144,0.5);
+  color: rgba(244, 208, 144, 0.5);
   font-size: 0.85rem;
   margin: 0 0 1rem;
 }
+
 .bsc-modal-desc {
-  color: rgba(244,208,144,0.65);
+  color: rgba(244, 208, 144, 0.65);
   font-size: 0.9rem;
   line-height: 1.7;
   margin: 0 0 1.5rem;
 }
+
 .bsc-modal-action {
   display: inline-block;
   background: linear-gradient(135deg, #8B6914, #c67a34);
@@ -434,8 +493,12 @@
   text-decoration: none;
   transition: opacity 0.2s;
 }
-.bsc-modal-action:hover { opacity: 0.85; }
 
+.bsc-modal-action:hover {
+  opacity: 0.85;
+}
+
+/* ==================== SECTION LABEL ==================== */
 .bsc-section-label {
   max-width: 1200px;
   margin: 2.5rem auto 0;
@@ -443,14 +506,211 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: rgba(244,208,144,0.35);
+  color: rgba(244, 208, 144, 0.35);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
+
 .bsc-section-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(198,122,52,0.15);
+  background: rgba(198, 122, 52, 0.15);
+}
+
+/* ==================== BIOGRAPHER (WIKI-STYLE) ==================== */
+.bsc-wiki-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.bsc-wiki-toc {
+  position: sticky;
+  top: 1.5rem;
+  background: rgba(20, 10, 6, 0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(198, 122, 52, 0.25);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.bsc-wiki-toc-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(244, 208, 144, 0.45);
+  margin-bottom: 0.6rem;
+}
+
+.bsc-wiki-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bsc-wiki-toc-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: rgba(244, 208, 144, 0.7);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.bsc-wiki-toc-item:hover {
+  background: rgba(198, 122, 52, 0.15);
+  color: #f4d090;
+}
+
+.bsc-wiki-toc-item.active {
+  background: rgba(198, 122, 52, 0.25);
+  color: #f4d090;
+  font-weight: 500;
+}
+
+.bsc-wiki-article {
+  min-width: 0;
+}
+
+/* ==================== WIKI INFOBOX ==================== */
+.bsc-wiki-infobox {
+  float: right;
+  width: 220px;
+  margin: 0 0 1.5rem 1.5rem;
+  background: rgba(20, 10, 6, 0.85);
+  border: 1px solid rgba(198, 122, 52, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bsc-wiki-infobox-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #f4d090;
+  text-align: center;
+  padding: 0.75rem;
+  background: rgba(198, 122, 52, 0.15);
+  border-bottom: 1px solid rgba(198, 122, 52, 0.3);
+}
+
+.bsc-wiki-infobox-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  border-top: 1px solid rgba(198, 122, 52, 0.15);
+}
+
+.bsc-wiki-infobox-row span:first-child {
+  color: rgba(244, 208, 144, 0.45);
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.bsc-wiki-infobox-row span:last-child {
+  color: #f4d090;
+  text-align: right;
+}
+
+/* ==================== WIKI SECTIONS ==================== */
+.bsc-wiki-section {
+  margin-bottom: 1.75rem;
+}
+
+.bsc-wiki-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: #f4d090;
+  border-bottom: 1px solid rgba(198, 122, 52, 0.25);
+  padding-bottom: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.bsc-wiki-section p {
+  color: rgba(244, 208, 144, 0.75);
+  font-size: 0.92rem;
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 720px) {
+  .bsc-wiki-container {
+    grid-template-columns: 1fr;
+  }
+
+  .bsc-wiki-toc {
+    position: static;
+  }
+
+  .bsc-wiki-infobox {
+    float: none;
+    width: auto;
+    margin: 0 0 1.5rem;
+  }
+
+  .bsc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    padding: 0 1rem;
+  }
+
+  .bsc-hero {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .bsc-modal {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .bsc-modal-hero {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bsc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bsc-stats {
+    gap: 1rem;
+  }
+
+  .bsc-tabs {
+    gap: 0.25rem;
+  }
+
+  .bsc-tab {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.85rem;
+  }
+
+  .bsc-search-wrap {
+    margin: 1rem auto 0;
+  }
+
+  .bsc-empty {
+    margin: 1rem;
+    padding: 2rem 1rem;
+  }
 }

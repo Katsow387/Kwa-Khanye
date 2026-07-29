@@ -65,223 +65,150 @@ export default function Bioscope() {
           .ilike('name', `%${artistName}%`)
           .maybeSingle();
 
-        if (artistError) {
-          console.error('Artist fetch error:', artistError);
-          setError('Could not find this artist');
-          setLoading(false);
-          return;
-        }
+      if (cancelled) return;
 
-        if (!artistData) {
-          setError(`Artist "${artistName}" not found`);
-          setLoading(false);
-          return;
-        }
-
-        artistId = artistData.id;
-        setArtist(artistData);
+      if (artistError || !artist) {
+        console.warn(
+          `[Bioscope] No artist found for slug "${artistSlug}". ` +
+          'Biographer/Video/Album overlays will show empty-state messages ' +
+          'instead of real content. Check that an artists row has ' +
+          'bioscope_route set to this exact value.',
+          artistError || ''
+        );
+        setArtistLookupDone(true);
+        return;
       }
 
-      // Fetch Bioscope content - direct Supabase query.
-      // NOTE: we avoid the embedded `artists(...)` select here since it
-      // depends on PostgREST already knowing about the artist_id -> artists.id
-      // foreign key relationship. If that relationship isn't registered in
-      // Supabase, the embed throws and this whole query silently fails,
-      // making the page look empty. Fetch content and artists separately
-      // and merge them in JS instead — this always works regardless of FK state.
-      let query = supabase.from('bioscope_content').select('*');
+      setArtist(artist);
+      setArtistId(artist.id);
+      // Column name for the display name isn't confirmed — try the likely
+      // candidates and fall back to deriving it from an album title below.
+      setArtistName(artist.name || artist.artist_name || artist.stage_name || artist.full_name || '');
 
-      if (artistId) {
-        query = query.eq('artist_id', artistId);
-      } else {
-        query = query.eq('featured', true);
-      }
+      const [videosRes, albumsRes] = await Promise.all([
+        supabase
+          .from('music_videos')
+          .select('*')
+          .eq('artist_id', artist.id)
+          .order('featured', { ascending: false })
+          .order('release_date', { ascending: false }),
+        supabase
+          .from('albums')
+          .select('*')
+          .eq('artist_id', artist.id)
+          .order('featured', { ascending: false })
+          .order('release_date', { ascending: false }),
+      ]);
 
-      const { data, error: fetchError } = await query
-        .order('created_at', { ascending: false })
-        .limit(12);
+      if (cancelled) return;
 
-      if (fetchError) {
-        console.error('Bioscope content fetch error:', fetchError);
-        if (fetchError.code === '42P01') {
-          setError('Bioscope content is being set up. Check back soon!');
-          setBioscopeContent([]);
-          setLoading(false);
-          return;
-        }
-        throw fetchError;
-      }
+      setVideos(videosRes.data || []);
+      setAlbums(albumsRes.data || []);
+      setArtistLookupDone(true);
+    };
 
-      let content = data || [];
+    loadArtistContent();
+    return () => {
+      cancelled = true;
+    };
+  }, [artistSlug]);
 
-      if (content.length > 0) {
-        const artistIds = [...new Set(content.map(c => c.artist_id).filter(Boolean))];
-        if (artistIds.length > 0) {
-          const { data: artistsData, error: artistsErr } = await supabase
-            .from('artists')
-            .select('id, name, country_id, culture_id')
-            .in('id', artistIds);
+  const closeOverlay = () => {
+    setOverlay(null);
+    setSelectedVideo(null);
+  };
 
-          if (artistsErr) {
-            console.error('Artists lookup error (bioscope content):', artistsErr);
-          } else {
-            const artistsById = Object.fromEntries((artistsData || []).map(a => [a.id, a]));
-            content = content.map(item => ({
-              ...item,
-              artists: artistsById[item.artist_id] || null,
-            }));
-          }
-        }
-      }
+  const openVideo = (video) => {
+    setSelectedVideo(video);
+    setOverlay('video-player');
+  };
 
-      setBioscopeContent(content);
-    } catch (err) {
-      console.error('Error in fetchBioscopeContent:', err);
-      setError('Failed to load Bioscope content. Please try again.');
-    } finally {
-      setLoading(false);
+  // Derives a display name for a track's "artist" field. Prefers the name
+  // pulled from the artists table; falls back to parsing it out of the
+  // album title, since your data uses "Artist Name - Album Title".
+  const resolveArtistLabel = (album) => {
+    if (artistName) return artistName;
+    if (album?.title && album.title.includes(' - ')) {
+      return album.title.split(' - ')[0];
     }
+    return album?.title || '';
   };
 
-  // Handle Menu click
-  const handleMenuClick = () => {
-    if (artist) {
-      navigate(`/bioscope-gallery?artist=${encodeURIComponent(artist.name)}`);
-    } else {
-      navigate('/bioscope-gallery');
+  // Fetches an album's tracks and hands off to the existing Calabash
+  // player at /now-playing, using the same { playlist, trackIndex, shuffle,
+  // repeat } shape Music.jsx already passes — so albums played from the
+  // Bioscope get shuffle/repeat/like for free instead of a separate player.
+  const openAlbum = async (album) => {
+    setOverlay('loading');
+    const { data } = await supabase
+      .from('album_tracks')
+      .select('*')
+      .eq('album_id', album.id)
+      .order('track_number', { ascending: true });
+
+    const tracks = data || [];
+    if (tracks.length === 0) {
+      // No tracks logged for this album yet — go back to the album list
+      // rather than navigating away to somewhere unrelated.
+      setOverlay('album-list');
+      return;
     }
+
+    const artistLabel = resolveArtistLabel(album);
+    const playlist = tracks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      duration: t.duration,
+      preview: t.preview_url,
+      cover_small: album.cover_small || album.cover_medium || album.cover_image,
+      artist: artistLabel,
+    }));
+
+    navigate('/now-playing', {
+      state: {
+        playlist,
+        trackIndex: 0,
+        shuffle: false,
+        repeat: 'off',
+      },
+    });
   };
 
-  // Wall-picture hotspots — each frame goes straight to its own destination
-  
-  // 1st Frame: Biography - goes to the specific artist if one is selected
-  const goToBiography = () => {
-    if (artist?.id) navigate(`/artist/${artist.id}`);
-    else if (artist?.name) navigate(`/artist?name=${encodeURIComponent(artist.name)}`);
-    else navigate('/artists'); // Fallback to all artists
-  };
-
-  // 2nd Frame: Music Videos - shows music videos for ALL artists across all tribes
-  const goToMusicVideo = () => {
-    navigate(`/music?mode=all-videos`);
-  };
-
-  // 3rd Frame: Albums - shows albums for ALL artists across all tribes
-  const goToAlbum = () => {
-    navigate(`/music?mode=all-albums`);
-  };
-
-  // "Kwa Khanye" home sign — takes you back to the artist's page or home
-  const goToArtistHome = () => {
-    if (artist?.id) navigate(`/artist/${artist.id}`);
-    else if (artist?.name) navigate(`/artist?name=${encodeURIComponent(artist.name)}`);
-    else navigate('/');
-  };
-
-  // Handle Explore click
-  const handleExploreClick = () => {
-    if (artist) {
-      navigate(`/bioscope-gallery?artist=${encodeURIComponent(artist.name)}&explore=true`);
-    } else {
-      navigate('/bioscope-gallery');
-    }
-  };
-
-  // Loading state
-  if (loading) {
+  // Column name for bio text isn't confirmed — try the likely candidates.
+  const resolveBio = () => {
+    if (!artist) return '';
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#0a0603',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '1rem'
-      }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: '#c67a34',
-              animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`
-            }} />
-          ))}
-        </div>
-        <p style={{ 
-          color: 'rgba(244,208,144,0.6)', 
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: '0.9rem'
-        }}>
-          Loading Bioscope content...
-        </p>
-        <style>{`
-          @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
-          }
-        `}</style>
-      </div>
+      artist.bio ||
+      artist.biography ||
+      artist.about ||
+      artist.description ||
+      artist.artist_bio ||
+      artist.story ||
+      ''
     );
-  }
+  };
 
-  // Error state
-  if (error) {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#0a0603',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '1.5rem',
-        padding: '2rem'
-      }}>
-        <div style={{ fontSize: '3rem', opacity: 0.4 }}>🎬</div>
-        <h2 style={{ 
-          color: '#f4d090', 
-          fontFamily: "'Cormorant Garamond', serif", 
-          fontSize: '1.5rem',
-          textAlign: 'center',
-          maxWidth: '400px'
-        }}>
-          {error}
-        </h2>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            background: 'linear-gradient(135deg, #8B6914, #c67a34)',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.75rem 1.5rem',
-            color: '#fff',
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '0.88rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'opacity 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >
-          ← Back to Explore
-        </button>
-      </div>
-    );
-  }
+  const handleHotspotClick = (spot) => {
+    if (spot.kind === 'biographer') {
+      // Always the overlay — never navigates on its own, so it can never
+      // land you anywhere near Music by accident.
+      setOverlay('biographer');
+      return;
+    }
 
-  // Main render
+    if (spot.kind === 'video') {
+      // Always show the list — ItemGrid already renders an empty-state
+      // message ("Nothing here yet.") if this artist has no videos, so
+      // there's no silent redirect to somewhere else.
+      setOverlay('video-list');
+      return;
+    }
+
+    if (spot.kind === 'album') {
+      setOverlay('album-list');
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed',
